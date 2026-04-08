@@ -1,66 +1,60 @@
-<!-- login.component.html -->
-<form
-  [formGroup]="form"
-  (ngSubmit)="onSubmit()"
-  novalidate
->
-  <h1>Se connecter</h1>
+<div class="auth-container">
+  <h2>Connexion</h2>
 
-  <div class="field">
-    <label for="email">Adresse e-mail</label>
-    <input
-      id="email"
-      type="email"
-      formControlName="email"
-      autocomplete="email"
-      [class.field--error]="email.touched && email.invalid"
-    />
-    <!-- Les erreurs s'affichent uniquement si "touched" est true -->
-    <!-- POURQUOI: Dans la stratégie "à la soumission", touched devient true via markAsTouched()
-         au clic sur "Se connecter" — pas avant -->
-    @if (email.touched && email.hasError('required')) {
-      <p class="error">L'adresse e-mail est obligatoire.</p>
-    }
-    @if (email.touched && email.hasError('email')) {
-      <p class="error">Format d'adresse e-mail invalide.</p>
-    }
-  </div>
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
-  <div class="field">
-    <label for="password">Mot de passe</label>
-    <input
-      id="password"
-      type="password"
-      formControlName="password"
-      autocomplete="current-password"
-      [class.field--error]="
-        password.touched && password.invalid
-      "
-    />
-    @if (password.touched && password.hasError('required')) {
-      <p class="error">Le mot de passe est obligatoire.</p>
-    }
-  </div>
-
-  <!-- Zone de message d'erreur global pour les erreurs serveur (ex. 401) -->
-  <!-- POURQUOI: role="alert" assure que le message est annoncé par les lecteurs d'écran -->
-  @if (globalError) {
-    <div class="alert alert--error" role="alert">
-      {{ globalError }}
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input id="email"
+             type="email"
+             formControlName="email"
+             autocomplete="email"
+             [class.is-invalid]="
+               email?.invalid && email?.touched
+             ">
+      <div *ngIf="email?.invalid && email?.touched"
+           class="error-message">
+        <span *ngIf="email?.errors?.['required']">
+          L'email est obligatoire.
+        </span>
+        <span *ngIf="email?.errors?.['email']">
+          Format d'email invalide.
+        </span>
+      </div>
     </div>
-  }
 
-  <!-- Pour la connexion, le bouton n'est PAS désactivé sur form.invalid -->
-  <!-- POURQUOI: Dans la stratégie "à la soumission", l'utilisateur doit pouvoir cliquer
-       pour déclencher l'affichage des erreurs. On désactive uniquement pendant l'appel HTTP -->
-  <button
-    type="submit"
-    [disabled]="isLoading"
-  >
-    @if (isLoading) {
-      Connexion en cours...
-    } @else {
-      Se connecter
-    }
-  </button>
-</form>
+    <div class="form-group">
+      <label for="password">Mot de passe</label>
+      <input id="password"
+             type="password"
+             formControlName="password"
+             autocomplete="current-password"
+             [class.is-invalid]="
+               password?.invalid && password?.touched
+             ">
+      <div *ngIf="password?.invalid && password?.touched"
+           class="error-message">
+        <span *ngIf="password?.errors?.['required']">
+          Le mot de passe est obligatoire.
+        </span>
+        <span *ngIf="password?.errors?.['minlength']">
+          6 caractères minimum.
+        </span>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-error">
+      {{ errorMessage }}
+    </div>
+
+    <button type="submit"
+            [disabled]="loginForm.invalid || isLoading">
+      {{ isLoading ? 'Connexion...' : 'Se connecter' }}
+    </button>
+
+  </form>
+
+  <p>Pas encore de compte ?
+    <a routerLink="/register">Créer un compte</a>
+  </p>
+</div>

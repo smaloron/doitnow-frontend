@@ -1,29 +1,38 @@
 <!-- header.component.html -->
 <header class="header">
   <div class="header-content">
-    <a routerLink="/tasks" class="header__logo">DoItNow</a>
-    <nav class="header__nav">
-      <a
-        routerLink="/tasks"
-        routerLinkActive="active"
-        class="header__link"
-      >Mes tâches</a>
-      <a
-        routerLink="/stats"
-        routerLinkActive="active"
-        class="header__link"
-      >Statistiques</a>
+    <a routerLink="/" class="header__logo">DoItNow</a>
+
+    <nav class="header__nav" *ngIf="authService.isAuthenticated()">
+      <a routerLink="/tasks"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }"
+         class="header__link">
+        Mes tâches
+      </a>
+      <a routerLink="/stats"
+         routerLinkActive="active"
+         class="header__link">
+        Statistiques
+      </a>
     </nav>
+
     <div class="header__actions">
-      <a
-        routerLink="/tasks/new"
-        class="btn btn--primary"
-      >Nouvelle tâche</a>
-      <button
-        type="button"
-        class="btn btn--ghost"
-        (click)="logout()"
-      >Déconnexion</button>
+      <ng-container *ngIf="!authService.isAuthenticated()">
+        <a routerLink="/login" class="btn btn--ghost">Connexion</a>
+        <a routerLink="/register" class="btn btn--primary">Inscription</a>
+      </ng-container>
+      <ng-container *ngIf="authService.isAuthenticated()">
+        <a routerLink="/tasks/new" class="btn btn--primary">
+          Nouvelle tâche
+        </a>
+        <button
+          type="button"
+          class="btn btn--ghost"
+          (click)="authService.logout()">
+          Déconnexion
+        </button>
+      </ng-container>
     </div>
   </div>
 </header>

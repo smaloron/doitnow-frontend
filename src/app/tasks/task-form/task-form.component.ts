@@ -1,72 +1,97 @@
-// task-form.component.ts
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { NgFor, NgIf } from '@angular/common';
 import {
-  FormBuilder,
-  FormGroup,
   FormArray,
-  Validators,
-  ReactiveFormsModule
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators
 } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
-import { noWhitespaceValidator } from
-  '../../shared/validators/no-whitespace.validator';
-// TaskService sera utilisé pour les appels HTTP dans les modules suivants
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TaskService } from '../../services/task.service';
+import { CreateTaskDTO } from '../../models/task.model';
+import {
+  futureDateValidator
+} from '../../validators/custom-validators';
 
 @Component({
   selector: 'app-task-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [NgFor, NgIf, ReactiveFormsModule, RouterLink],
   templateUrl: './task-form.component.html'
 })
-export class TaskFormComponent {
+export class TaskFormComponent implements OnInit {
   private fb = inject(FormBuilder);
+  private taskService = inject(TaskService);
+  private route = inject(ActivatedRoute);
   private router = inject(Router);
 
-  // Drapeau de chargement, false au démarrage (pas d'appel en cours)
+  isEditMode = false;
+  taskId: string | null = null;
   isLoading = false;
-  // Erreur globale pour les erreurs serveur non rattachées à un champ
-  globalError: string | null = null;
+  // Stocke les erreurs de validation retournées par le backend (HTTP 400)
+  // POURQUOI: permet d'afficher les messages API en regard de chaque champ du formulaire
+  apiErrors: Record<string, string> = {};
 
-  form: FormGroup = this.fb.group({
-    // Trois validateurs cumulés sur title : required, minLength, maxLength + noWhitespace
-    title: ['', [
-      Validators.required,
-      Validators.minLength(3),
-      Validators.maxLength(100),
-      noWhitespaceValidator()
-    ]],
+  readonly priorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
+
+  taskForm = this.fb.group({
+    title: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(100)
+      ]
+    ],
     description: ['', Validators.maxLength(500)],
     priority: ['MEDIUM', Validators.required],
     tags: this.fb.array([]),
-    dueDate: ['']
+    dueDate: ['', futureDateValidator()]
   });
 
-  // Méthode générique prenant le nom du contrôle et la clé d'erreur en paramètres
-  // POURQUOI: Permet de réutiliser une seule méthode pour tous les champs
-  hasError(
-    controlName: string,
-    errorKey: string
-  ): boolean {
-    const ctrl = this.form.get(controlName);
-    return !!(
-      ctrl?.hasError(errorKey) &&
-      (ctrl.touched || ctrl.dirty)
-    );
-  }
-
+  // Accesseur qui caste le contrôle 'tags' en FormArray
+  // POURQUOI: taskForm.get('tags') retourne AbstractControl | null ; le cast est nécessaire
   get tags(): FormArray {
-    return this.form.get('tags') as FormArray;
+    return this.taskForm.get('tags') as FormArray;
   }
 
-  get dueDate() {
-    return this.form.get('dueDate')!;
+  get title() { return this.taskForm.get('title'); }
+  get description() {
+    return this.taskForm.get('description');
+  }
+  get dueDate() { return this.taskForm.get('dueDate'); }
+
+  ngOnInit(): void {
+    this.taskId = this.route.snapshot.paramMap.get('id');
+    this.isEditMode = !!this.taskId;
+
+    if (this.isEditMode && this.taskId) {
+      this.loadTask(this.taskId);
+    }
   }
 
-  addTag(): void {
+  private loadTask(id: string): void {
+    this.taskService.getTaskById(id).subscribe({
+      next: (task) => {
+        // Vider le FormArray avant de le repeupler
+        // POURQUOI: sans clear(), un double appel dupliquerait les tags
+        this.tags.clear();
+        task.tags.forEach(tag => this.addTag(tag));
+
+        this.taskForm.patchValue({
+          title: task.title,
+          description: task.description ?? '',
+          priority: task.priority,
+          dueDate: task.dueDate ?? ''
+        });
+      },
+      error: () => this.router.navigate(['/tasks'])
+    });
+  }
+
+  addTag(value = ''): void {
     this.tags.push(
-      this.fb.control('', Validators.required)
+      this.fb.control(value, Validators.required)
     );
   }
 
@@ -75,41 +100,38 @@ export class TaskFormComponent {
   }
 
   onSubmit(): void {
-    // Guard clause combinée — vérifie la validité ET l'état de chargement
-    // POURQUOI: La vérification de isLoading protège contre le double-clic
-    if (this.form.invalid || this.isLoading) return;
+    if (this.taskForm.invalid) return;
 
     this.isLoading = true;
-    this.globalError = null;
+    this.apiErrors = {};
 
-    // Simulation d'un appel async — sera remplacé par un vrai appel HTTP
-    console.log('Tâche créée :', this.form.value);
-    this.isLoading = false;
-    this.router.navigate(['/tasks']);
-  }
+    const v = this.taskForm.value;
+    const dto: CreateTaskDTO = {
+      title: v.title!,
+      description: v.description || undefined,
+      priority: v.priority as any,
+      tags: (v.tags as string[]).filter(t => t.trim()),
+      dueDate: v.dueDate || undefined
+    };
 
-  private handleTaskError(err: HttpErrorResponse): void {
-    // Vérifie statut 400 ET que le corps est un objet (pas une string ou null)
-    // POURQUOI: typeof === 'object' protège contre les réponses mal formées du serveur
-    if (err.status === 400 && typeof err.error === 'object') {
-      // Caste en Record<string, string> puis itère sur les paires [champ, message]
-      Object.entries(err.error as Record<string, string>)
-        .forEach(([field, message]) => {
-          const ctrl = this.form.get(field);
-          if (ctrl) {
-            // Injecte le message serveur sous la clé "serverError"
-            // POURQUOI: Contrairement à emailTaken (qui vaut juste true), on stocke le message texte
-            // pour pouvoir l'afficher dynamiquement dans le template
-            ctrl.setErrors({
-              ...ctrl.errors,
-              serverError: message as string
-            });
-            ctrl.markAsTouched();
-          }
-        });
-    } else {
-      this.globalError =
-        'Une erreur est survenue lors de la sauvegarde.';
-    }
+    const request$ = this.isEditMode && this.taskId
+      ? this.taskService.updateTask(this.taskId, {
+          ...dto, completed: false
+        })
+      : this.taskService.createTask(dto);
+
+    request$.subscribe({
+      next: (task) => {
+        this.router.navigate(['/tasks', task.id]);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        // Récupère l'objet d'erreurs de validation renvoyé par le backend (clé = nom du champ)
+        // POURQUOI: afficher les erreurs API en regard de chaque champ offre une meilleure UX
+        if (err.status === 400) {
+          this.apiErrors = err.error;
+        }
+      }
+    });
   }
 }

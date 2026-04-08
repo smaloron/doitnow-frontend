@@ -1,40 +1,31 @@
-// register.component.ts
-import {
-  Component,
-  OnInit,
-  inject
-} from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { NgIf } from '@angular/common';
 import {
   FormBuilder,
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
-
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { passwordMatchValidator } from
-  '../../shared/validators/password-match.validator';
+import {
+  passwordMatchValidator
+} from '../../validators/custom-validators';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [NgIf, ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html'
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
 
+  errorMessage = '';
   isLoading = false;
-  globalError: string | null = null;
 
-  // passwordMatchValidator est un validateur de niveau groupe
-  // POURQUOI: Placé dans les options du groupe car il a besoin d'accéder
-  // aux deux champs password et confirmPassword simultanément
-  form = this.fb.group(
+  registerForm = this.fb.group(
     {
       email: [
         '',
@@ -46,72 +37,41 @@ export class RegisterComponent implements OnInit {
       ],
       confirmPassword: ['', Validators.required]
     },
+    // Validateur croisé appliqué au FormGroup entier
+    // POURQUOI: passwordMatchValidator compare deux champs distincts
     { validators: passwordMatchValidator() }
   );
 
-  get email() { return this.form.get('email')!; }
-  get password() { return this.form.get('password')!; }
-  get confirmPassword() {
-    return this.form.get('confirmPassword')!;
+  get email() { return this.registerForm.get('email'); }
+  get password() {
+    return this.registerForm.get('password');
   }
-
-  ngOnInit(): void {
-    // S'abonne à valueChanges pour effacer emailTaken quand l'utilisateur modifie le champ
-    // POURQUOI: Signale visuellement que la modification annule l'erreur serveur précédente
-    this.email.valueChanges.subscribe(() => {
-      const errors = { ...this.email.errors };
-      delete errors['emailTaken'];
-      this.email.setErrors(
-        Object.keys(errors).length ? errors : null
-      );
-    });
+  get confirmPassword() {
+    return this.registerForm.get('confirmPassword');
   }
 
   onSubmit(): void {
-    // Guard clause combinée — invalide OU chargement en cours
-    if (this.form.invalid || this.isLoading) return;
+    if (this.registerForm.invalid) return;
 
     this.isLoading = true;
-    this.globalError = null;
+    this.errorMessage = '';
 
-    // Destructure uniquement email et password — confirmPassword reste côté client
-    const { email, password } = this.form.value;
-
+    const { email, password } = this.registerForm.value;
     this.authService
       .register({ email: email!, password: password! })
       .subscribe({
-        next: ({ token }) => {
+        next: () => this.router.navigate(['/tasks']),
+        error: (err) => {
           this.isLoading = false;
-          // Stocke le token JWT dans le localStorage
-          localStorage.setItem('auth_token', token);
-          this.router.navigate(['/tasks']);
-        },
-        error: (err: HttpErrorResponse) => {
-          this.isLoading = false;
-          this.handleError(err);
+          // Pose une erreur personnalisée sur le contrôle email en cas de doublon
+          // POURQUOI: le backend renvoie 500 pour un email déjà utilisé
+          if (err.status === 500) {
+            this.email?.setErrors({ emailExists: true });
+          } else {
+            this.errorMessage =
+              'Erreur lors de l\'inscription. Réessayez.';
+          }
         }
       });
-  }
-
-  private handleError(err: HttpErrorResponse): void {
-    const body = err.error;
-
-    // Détecte le cas "email déjà utilisé" (500 + message spécifique du backend DoItNow)
-    // POURQUOI: Injecte l'erreur directement dans le contrôle email pour l'afficher sous le champ
-    if (
-      err.status === 500 &&
-      body?.message?.includes('email existe déjà')
-    ) {
-      this.email.setErrors({
-        ...this.email.errors,
-        emailTaken: true
-      });
-      this.email.markAsTouched();
-      return;
-    }
-
-    // Fallback — message global générique pour toute erreur non identifiée
-    this.globalError =
-      'Une erreur est survenue. Veuillez réessayer.';
   }
 }

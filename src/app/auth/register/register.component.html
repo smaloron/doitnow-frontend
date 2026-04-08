@@ -1,103 +1,85 @@
-<!-- register.component.html -->
-<form
-  [formGroup]="form"
-  (ngSubmit)="onSubmit()"
-  novalidate
->
-  <h1>Créer un compte</h1>
+<div class="auth-container">
+  <h2>Créer un compte</h2>
 
-  <!-- Champ e-mail -->
-  <div class="field">
-    <label for="email">Adresse e-mail</label>
-    <input
-      id="email"
-      type="email"
-      formControlName="email"
-      autocomplete="email"
-      [class.field--error]="email.touched && email.invalid"
-      [class.field--success]="email.touched && email.valid"
-    />
-    @if (email.touched && email.hasError('required')) {
-      <p class="error">L'adresse e-mail est obligatoire.</p>
-    }
-    @if (email.touched && email.hasError('email')) {
-      <p class="error">Format d'adresse e-mail invalide.</p>
-    }
-    <!-- emailTaken est une erreur injectée depuis le serveur via handleError() -->
-    @if (email.touched && email.hasError('emailTaken')) {
-      <p class="error">
-        Cette adresse est déjà associée à un compte.
-      </p>
-    }
-  </div>
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
 
-  <!-- Champ mot de passe -->
-  <div class="field">
-    <label for="password">Mot de passe</label>
-    <input
-      id="password"
-      type="password"
-      formControlName="password"
-      autocomplete="new-password"
-      [class.field--error]="
-        password.touched && password.invalid
-      "
-      [class.field--success]="
-        password.touched && password.valid
-      "
-    />
-    @if (password.touched && password.hasError('required')) {
-      <p class="error">Le mot de passe est obligatoire.</p>
-    }
-    @if (password.touched && password.hasError('minlength')) {
-      <p class="error">
-        Le mot de passe doit contenir au moins 8 caractères.
-      </p>
-    }
-  </div>
-
-  <!-- Confirmation du mot de passe -->
-  <div class="field">
-    <label for="confirmPassword">
-      Confirmer le mot de passe
-    </label>
-    <input
-      id="confirmPassword"
-      type="password"
-      formControlName="confirmPassword"
-      autocomplete="new-password"
-      [class.field--error]="
-        confirmPassword.touched && confirmPassword.invalid
-      "
-    />
-    <!-- passwordMismatch est portée par le FormGroup, pas par un contrôle individuel -->
-    <!-- POURQUOI: Le validateur compare deux champs, donc il est au niveau groupe -->
-    @if (
-      confirmPassword.touched &&
-      form.hasError('passwordMismatch')
-    ) {
-      <p class="error">
-        Les mots de passe ne correspondent pas.
-      </p>
-    }
-  </div>
-
-  <!-- Bandeau d'erreur global -->
-  @if (globalError) {
-    <div class="alert alert--error" role="alert">
-      {{ globalError }}
+    <div class="form-group">
+      <label for="reg-email">Email</label>
+      <input id="reg-email"
+             type="email"
+             formControlName="email"
+             autocomplete="email"
+             [class.is-invalid]="
+               email?.invalid && email?.touched
+             ">
+      <div *ngIf="email?.invalid && email?.touched"
+           class="error-message">
+        <span *ngIf="email?.errors?.['required']">
+          L'email est obligatoire.
+        </span>
+        <span *ngIf="email?.errors?.['email']">
+          Format d'email invalide.
+        </span>
+        <span *ngIf="email?.errors?.['emailExists']">
+          Un compte avec cet email existe déjà.
+        </span>
+      </div>
     </div>
-  }
 
-  <!-- Désactivé dans trois situations : invalid, pending (validateur async), isLoading -->
-  <button
-    type="submit"
-    [disabled]="form.invalid || form.pending || isLoading"
-  >
-    @if (isLoading) {
-      Inscription en cours...
-    } @else {
-      S'inscrire
-    }
-  </button>
-</form>
+    <div class="form-group">
+      <label for="reg-password">Mot de passe</label>
+      <input id="reg-password"
+             type="password"
+             formControlName="password"
+             autocomplete="new-password"
+             [class.is-invalid]="
+               password?.invalid && password?.touched
+             ">
+      <div *ngIf="password?.invalid && password?.touched"
+           class="error-message">
+        <span *ngIf="password?.errors?.['required']">
+          Le mot de passe est obligatoire.
+        </span>
+        <span *ngIf="password?.errors?.['minlength']">
+          8 caractères minimum.
+        </span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="confirm-password">
+        Confirmer le mot de passe
+      </label>
+      <input id="confirm-password"
+             type="password"
+             formControlName="confirmPassword"
+             autocomplete="new-password"
+             [class.is-invalid]="
+               registerForm.errors?.['passwordMismatch']
+               && confirmPassword?.touched
+             ">
+      <!-- L'erreur passwordMismatch est lue sur registerForm.errors, pas sur confirmPassword.errors -->
+      <!-- POURQUOI: le validateur croisé est posé au niveau du FormGroup -->
+      <div *ngIf="
+             registerForm.errors?.['passwordMismatch']
+             && confirmPassword?.touched"
+           class="error-message">
+        Les mots de passe ne correspondent pas.
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-error">
+      {{ errorMessage }}
+    </div>
+
+    <button type="submit"
+            [disabled]="registerForm.invalid || isLoading">
+      {{ isLoading ? 'Inscription...' : 'S\'inscrire' }}
+    </button>
+
+  </form>
+
+  <p>Déjà un compte ?
+    <a routerLink="/login">Se connecter</a>
+  </p>
+</div>
