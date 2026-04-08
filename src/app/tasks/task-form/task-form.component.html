@@ -1,0 +1,112 @@
+<!-- task-form.component.html -->
+<div class="task-form-container">
+  <h1>Nouvelle tâche</h1>
+
+  <form
+    [formGroup]="taskForm"
+    (ngSubmit)="onSubmit()"
+    novalidate
+  >
+    <!-- Titre -->
+    <div class="form-group">
+      <label for="title">Titre *</label>
+      <input
+        id="title"
+        type="text"
+        formControlName="title"
+        placeholder="Intitulé de la tâche"
+      />
+
+      <div class="error-messages">
+        <!-- Message pour champ vide — affiché en premier car c'est l'erreur la plus basique -->
+        <span *ngIf="hasError('title', 'required')">
+          Le titre est obligatoire.
+        </span>
+        <!-- Message pour titre trop court — requiredLength lu dynamiquement -->
+        <span *ngIf="hasError('title', 'minlength')">
+          Le titre doit contenir au moins
+          {{
+            taskForm.get('title')
+              ?.errors?.['minlength']?.requiredLength
+          }}
+          caractères.
+        </span>
+        <!-- Message pour titre trop long -->
+        <span *ngIf="hasError('title', 'maxlength')">
+          Le titre ne peut pas dépasser
+          {{
+            taskForm.get('title')
+              ?.errors?.['maxlength']?.requiredLength
+          }}
+          caractères.
+        </span>
+        <!-- Message pour titre contenant uniquement des espaces -->
+        <span *ngIf="hasError('title', 'whitespaceOnly')">
+          Le titre ne peut pas contenir uniquement des espaces.
+        </span>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        formControlName="description"
+        rows="4"
+        placeholder="Décrivez la tâche..."
+      ></textarea>
+      <span *ngIf="hasError('description', 'maxlength')">
+        Maximum 500 caractères.
+      </span>
+    </div>
+
+    <!-- Priorité -->
+    <div class="form-group">
+      <label for="priority">Priorité *</label>
+      <select id="priority" formControlName="priority">
+        <option value="LOW">Basse</option>
+        <option value="MEDIUM">Normale</option>
+        <option value="HIGH">Haute</option>
+        <option value="URGENT">Urgente</option>
+      </select>
+    </div>
+
+    <!-- Tags dynamiques — FormArray -->
+    <div class="form-group" formArrayName="tags">
+      <p>Tags</p>
+      <div
+        *ngFor="let tag of tags.controls; let i = index"
+      >
+        <input
+          [formControlName]="i"
+          type="text"
+          placeholder="Tag {{ i + 1 }}"
+        />
+        <button type="button" (click)="removeTag(i)">
+          Retirer
+        </button>
+      </div>
+      <button type="button" (click)="addTag()">
+        Ajouter un tag
+      </button>
+    </div>
+
+    <!-- Date d'échéance -->
+    <div class="form-group">
+      <label for="dueDate">Date d'échéance</label>
+      <input
+        id="dueDate"
+        type="date"
+        formControlName="dueDate"
+      />
+    </div>
+
+    <button
+      type="submit"
+      [disabled]="taskForm.invalid"
+    >
+      Créer la tâche
+    </button>
+  </form>
+</div>

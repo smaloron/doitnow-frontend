@@ -5,6 +5,7 @@ import {
   LOCALE_ID,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { registerLocaleData } from '@angular/common';
 // Import explicite de la locale française
 // POURQUOI: Angular ne charge pas les locales par défaut pour limiter la taille du bundle
@@ -21,6 +22,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
+    provideHttpClient(),
     // LOCALE_ID est un token d'injection qu'Angular utilise pour tous les pipes
     // sensibles à la locale (date, currency, number...)
     // POURQUOI: Définir 'fr-FR' ici applique le français globalement

@@ -1,0 +1,121 @@
+<!-- register.component.html — version finale complète -->
+<div class="register-container">
+  <h1>Créer un compte</h1>
+
+  <!-- novalidate désactive la validation HTML5 -->
+  <!-- POURQUOI: laisse Angular seul maître de la validation — évite les doublons avec les bulles navigateur -->
+  <form
+    [formGroup]="registerForm"
+    (ngSubmit)="onSubmit()"
+    novalidate
+  >
+
+    <!-- Champ email -->
+    <div class="form-group">
+      <label for="email">Adresse email *</label>
+      <div class="input-wrapper">
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="votre@email.com"
+          autocomplete="email"
+        />
+        <!-- Spinner affiché pendant l'état pending du validateur asynchrone -->
+        <span
+          *ngIf="registerForm.get('email')?.pending"
+          class="spinner"
+          aria-live="polite"
+          aria-label="Vérification en cours"
+        >
+          Vérification...
+        </span>
+      </div>
+
+      <div class="error-messages" role="alert">
+        <span *ngIf="hasError('email', 'required')">
+          L'adresse email est obligatoire.
+        </span>
+        <span *ngIf="hasError('email', 'email')">
+          Veuillez saisir une adresse email valide.
+        </span>
+        <!-- Erreur asynchrone emailExists -->
+        <span *ngIf="hasError('email', 'emailExists')">
+          Cette adresse est déjà associée à un compte.
+        </span>
+      </div>
+    </div>
+
+    <!-- Champ mot de passe -->
+    <div class="form-group">
+      <label for="password">Mot de passe *</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        autocomplete="new-password"
+      />
+
+      <div class="error-messages" role="alert">
+        <span *ngIf="hasError('password', 'required')">
+          Le mot de passe est obligatoire.
+        </span>
+        <!-- Lecture dynamique de requiredLength depuis l'objet d'erreur minlength -->
+        <span *ngIf="hasError('password', 'minlength')">
+          Le mot de passe doit contenir au moins
+          {{
+            registerForm.get('password')
+              ?.errors?.['minlength']?.requiredLength
+          }}
+          caractères.
+        </span>
+      </div>
+    </div>
+
+    <!-- Champ confirmation -->
+    <div class="form-group">
+      <label for="confirmPassword">
+        Confirmer le mot de passe *
+      </label>
+      <input
+        id="confirmPassword"
+        type="password"
+        formControlName="confirmPassword"
+        autocomplete="new-password"
+      />
+
+      <div class="error-messages" role="alert">
+        <span
+          *ngIf="
+            hasError('confirmPassword', 'required')
+          "
+        >
+          La confirmation est obligatoire.
+        </span>
+        <!-- Erreur passwordMismatch lue sur registerForm.errors (niveau groupe) -->
+        <span
+          *ngIf="
+            registerForm.errors?.['passwordMismatch'] &&
+            registerForm.get('confirmPassword')?.touched
+          "
+        >
+          Les mots de passe ne correspondent pas.
+        </span>
+      </div>
+    </div>
+
+    <!-- Bouton de soumission -->
+    <button
+      type="submit"
+      [disabled]="isSubmitDisabled"
+    >
+      S'inscrire
+    </button>
+
+  </form>
+
+  <p>
+    Déjà un compte ?
+    <a routerLink="/login">Se connecter</a>
+  </p>
+</div>
