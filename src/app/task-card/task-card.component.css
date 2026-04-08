@@ -1,0 +1,70 @@
+.task-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  /* Animation du changement d'ombre au survol */
+  /* POURQUOI: Un effet de transition (0.2s) est plus naturel qu'un changement instantané */
+  transition: box-shadow 0.2s;
+}
+
+.task-card:hover {
+  /* Ombre portée légère au survol */
+  /* POURQUOI: Signale visuellement l'interactivité de la carte */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-header {
+  display: flex;
+  /* space-between pousse le titre à gauche et le badge de priorité à droite */
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.task-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.task-priority {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  background-color: #e0e0e0;
+}
+
+.task-description {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.task-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-toggle,
+.btn-delete {
+  padding: 0.4rem 0.8rem;
+  /* Suppression de la bordure par défaut des boutons HTML */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-toggle {
+  /* Fond bleu clair et texte bleu pour une action neutre/positive */
+  background-color: #e8f0fe;
+  color: #1a73e8;
+}
+
+.btn-delete {
+  /* Fond rouge clair et texte rouge */
+  /* POURQUOI: Signale visuellement une action destructrice (convention UX) */
+  background-color: #fce8e6;
+  color: #d93025;
+}

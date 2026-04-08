@@ -1,0 +1,20 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-body {
+  display: flex;
+  /* flex: 1 occupe tout l'espace vertical restant entre header et footer */
+  /* POURQUOI: flex-direction: row est implicite (valeur par défaut) —
+     sidebar et contenu s'affichent côte à côte horizontalement */
+  flex: 1;
+}
+
+.app-content {
+  /* flex: 1 occupe tout l'espace horizontal restant à droite de la sidebar */
+  /* POURQUOI: Quelle que soit la largeur de la sidebar, le contenu s'adapte automatiquement */
+  flex: 1;
+  padding: 2rem;
+}

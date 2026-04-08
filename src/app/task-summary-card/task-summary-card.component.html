@@ -1,0 +1,14 @@
+<!-- Event binding (click) sur toute la carte -->
+<!-- POURQUOI: Plus ergonomique qu'un bouton — toute la surface de la carte répond au clic -->
+<div
+  class="summary-card"
+  (click)="onClick()">
+  <!-- Interpolation des données fournies par @Input -->
+  <!-- POURQUOI: Si le parent met à jour l'objet, Angular re-rend automatiquement cette carte -->
+  <span class="summary-count">
+    {{ summary.count }}
+  </span>
+  <span class="summary-label">
+    {{ summary.label }}
+  </span>
+</div>

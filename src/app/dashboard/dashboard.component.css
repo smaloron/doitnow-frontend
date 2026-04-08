@@ -1,0 +1,17 @@
+dashboard {
+  max-width: 800px;
+}
+
+.dashboard h2 {
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.summary-grid {
+  display: grid;
+  /* 4 colonnes de largeur égale (1 fraction chacune) */
+  /* POURQUOI: CSS Grid offre un alignement en grille plus prévisible que flex
+     avec quatre enfants flex: 1 */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}

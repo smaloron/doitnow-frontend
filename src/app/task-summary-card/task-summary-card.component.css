@@ -1,0 +1,33 @@
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  /* cursor: pointer signale que la carte est cliquable */
+  cursor: pointer;
+  /* Transition sur tous les changements visuels (bordure, ombre) */
+  /* POURQUOI: Un effet fluide (0.2s) est plus agréable qu'un changement instantané */
+  transition: all 0.2s;
+  min-width: 140px;
+}
+
+.summary-card:hover {
+  /* Bordure bleue et ombre colorée subtile au survol */
+  /* POURQUOI: Renforce l'indication d'interactivité de la carte */
+  border-color: #1a73e8;
+  box-shadow: 0 2px 8px rgba(26, 115, 232, 0.15);
+}
+
+.summary-count {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a73e8;
+}
+
+.summary-label {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.25rem;
+}

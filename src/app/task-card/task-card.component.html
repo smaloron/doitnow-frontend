@@ -1,0 +1,30 @@
+<div class="task-card">
+  <div class="task-header">
+    <h3 class="task-title">{{ task.title }}</h3>
+    <span class="task-priority">
+      {{ task.priority }}
+    </span>
+  </div>
+
+  <p class="task-description">
+    {{ task.description }}
+  </p>
+
+  <div class="task-actions">
+    <!-- Event binding (click) + opérateur ternaire pour adapter le libellé du bouton -->
+    <!-- POURQUOI: Si la tâche est terminée, on propose "Réouvrir", sinon "Terminer" —
+         le libellé s'adapte automatiquement à l'état de la tâche -->
+    <button
+      class="btn-toggle"
+      (click)="onToggleComplete()">
+      {{ task.completed
+      ? 'Réouvrir'
+      : 'Terminer' }}
+    </button>
+    <button
+      class="btn-delete"
+      (click)="onDelete()">
+      Supprimer
+    </button>
+  </div>
+</div>

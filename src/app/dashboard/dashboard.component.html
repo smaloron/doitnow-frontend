@@ -1,0 +1,23 @@
+<div class="dashboard">
+  <h2>Tableau de bord</h2>
+  <div class="summary-grid">
+    <!-- [summary] passe l'objet via @Input, (selected) écoute l'événement @Output -->
+    <!-- POURQUOI: $event contiendra le "type" émis par TaskSummaryCardComponent.onClick() -->
+    <app-task-summary-card
+      [summary]="summaries[0]"
+      (selected)="onSummarySelected($event)">
+    </app-task-summary-card>
+    <app-task-summary-card
+      [summary]="summaries[1]"
+      (selected)="onSummarySelected($event)">
+    </app-task-summary-card>
+    <app-task-summary-card
+      [summary]="summaries[2]"
+      (selected)="onSummarySelected($event)">
+    </app-task-summary-card>
+    <app-task-summary-card
+      [summary]="summaries[3]"
+      (selected)="onSummarySelected($event)">
+    </app-task-summary-card>
+  </div>
+</div>
