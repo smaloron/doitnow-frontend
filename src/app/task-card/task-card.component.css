@@ -5,13 +5,21 @@
   margin-bottom: 1rem;
   /* Animation du changement d'ombre au survol */
   /* POURQUOI: Un effet de transition (0.2s) est plus naturel qu'un changement instantané */
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, opacity 0.3s, background-color 0.3s;
 }
 
 .task-card:hover {
   /* Ombre portée légère au survol */
   /* POURQUOI: Signale visuellement l'interactivité de la carte */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Style appliqué dynamiquement via [class.task-completed] */
+/* POURQUOI: L'estompage visuel signale immédiatement à l'utilisateur
+   que la tâche est terminée/archivée */
+.task-completed {
+  opacity: 0.6;
+  background-color: #f8f9fa;
 }
 
 .task-header {
@@ -25,14 +33,6 @@
 .task-title {
   margin: 0;
   font-size: 1.1rem;
-}
-
-.task-priority {
-  font-size: 0.75rem;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-weight: 600;
-  background-color: #e0e0e0;
 }
 
 .task-description {
@@ -67,4 +67,58 @@
   /* POURQUOI: Signale visuellement une action destructrice (convention UX) */
   background-color: #fce8e6;
   color: #d93025;
+}
+
+/* Style commun à tous les badges de priorité */
+/* POURQUOI: Les couleurs spécifiques sont dans les classes ci-dessous,
+   appliquées dynamiquement via [class] — cette séparation évite la duplication */
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Classes de couleur par niveau de priorité */
+/* POURQUOI: Les noms correspondent exactement aux valeurs retournées par
+   getPriorityClass() ('priority-low', etc.) — la cohérence de nommage
+   entre CSS et TypeScript est indispensable pour que le binding fonctionne */
+.priority-low {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.priority-medium {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.priority-high {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.priority-urgent {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Bordure gauche rouge sur les cartes en retard */
+/* POURQUOI: Signal visuel fort et discret — attire l'oeil sans surcharger la carte,
+   contrairement à un fond rouge complet qui serait trop agressif */
+.overdue {
+  border-left: 4px solid #dc3545;
+}
+
+/* Badge "En retard" affiché conditionnellement via @if */
+.overdue-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  background-color: #dc3545;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }

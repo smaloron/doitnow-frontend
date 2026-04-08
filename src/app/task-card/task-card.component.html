@@ -1,14 +1,59 @@
-<div class="task-card">
+<div
+  class="task-card"
+  [class.task-completed]="task.completed"
+  [class.overdue]="isOverdue()">
+
   <div class="task-header">
-    <h3 class="task-title">{{ task.title }}</h3>
-    <span class="task-priority">
-      {{ task.priority }}
-    </span>
+    <!-- Titre barré visuellement si la tâche est terminée -->
+    <!-- POURQUOI: Retour visuel immédiat — l'utilisateur comprend le statut
+         sans lire le texte explicite -->
+    <h3 class="task-title"
+        [style.text-decoration]="
+          task.completed ? 'line-through' : 'none'
+        ">
+      {{ task.title }}
+    </h3>
+
+    <!-- @if conditionnel — l'élément n'existe dans le DOM que si isOverdue() est true -->
+    <!-- POURQUOI: @if (successeur de *ngIf) ajoute/retire l'élément du DOM plutôt que
+         de le cacher avec display:none — plus performant car Angular ne gère pas
+         le change detection d'un élément absent -->
+    @if (isOverdue()) {
+      <span class="overdue-badge">En retard</span>
+    }
   </div>
 
+  <!-- Affichage de la description avec fallback via ?? -->
+  <!-- POURQUOI: L'API peut renvoyer null pour description — sans ??,
+       l'utilisateur verrait le texte "null" affiché, ce qui est une mauvaise UX -->
   <p class="task-description">
-    {{ task.description }}
+    {{ task.description ?? 'Aucune description fournie.' }}
   </p>
+
+  <!-- Ternaire pour convertir le booléen completed en texte lisible -->
+  <!-- POURQUOI: Sans conversion, l'utilisateur verrait "true" ou "false"
+       à l'écran, ce qui n'est pas exploitable -->
+  <p class="task-status">
+    Statut : {{ task.completed ? 'Terminée' : 'En cours' }}
+  </p>
+
+  <!-- Badge avec classe fixe 'badge' + classe dynamique de priorité -->
+  <!-- POURQUOI: 'badge' applique le style commun (padding, border-radius),
+       la classe dynamique de getPriorityClass() ajoute la couleur spécifique -->
+  <span [class]="'badge ' + getPriorityClass()">
+    Priorité : {{ getPriorityLabel() }}
+  </span>
+
+  <!-- Affichage brut de la date ISO 8601 -->
+  <!-- POURQUOI: Le formatage lisible ("27 mars 2026") sera fait avec les pipes
+       Angular en partie 1.5 — on affiche la valeur brute pour l'instant -->
+  <p class="task-meta">
+    Créée le : {{ task.createdAt }}
+  </p>
+
+  <p class="task-due-date">{{ getDueDateLabel() }}</p>
+
+  <p class="task-tags">{{ getTagsLabel() }}</p>
 
   <div class="task-actions">
     <!-- Event binding (click) + opérateur ternaire pour adapter le libellé du bouton -->
@@ -21,10 +66,14 @@
         ? 'Réouvrir'
         : 'Terminer' }}
     </button>
+    <!-- [disabled] grise le bouton, (click) passe $event pour stopPropagation() -->
+    <!-- POURQUOI: Une tâche terminée passe en archive avant suppression (règle métier) —
+         le bouton désactivé reflète cette contrainte dans l'interface -->
     <button
       class="btn-delete"
-      (click)="onDelete()">
-      Supprimer
+      [disabled]="task.completed"
+      (click)="onDelete($event)">
+      {{ task.completed ? 'Archivée' : 'Supprimer' }}
     </button>
   </div>
 </div>

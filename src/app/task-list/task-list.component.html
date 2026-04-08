@@ -1,0 +1,136 @@
+<!-- src/app/task-list/task-list.component.html -->
+<div class="task-list-container">
+
+  <!-- En-tête avec compteur et recherche -->
+  <div class="task-list-header">
+    <h2 class="list-title">Mes tâches</h2>
+
+    <!-- Compteur réévalué automatiquement à chaque changement d'état -->
+    <p class="task-counter">
+      {{ getPendingCount() }} en cours
+      / {{ tasks.length }} au total
+    </p>
+
+    <!-- Champ de recherche avec two-way binding -->
+    <!-- POURQUOI: [(ngModel)] synchronise dans les deux sens — chaque frappe
+         met à jour searchKeyword et déclenche la réévaluation des bindings -->
+    <input
+      type="text"
+      [(ngModel)]="searchKeyword"
+      placeholder="Rechercher une tâche..."
+      class="search-input"
+    >
+
+    <!-- Indicateur de recherche visible uniquement si searchKeyword est non vide -->
+    <!-- POURQUOI: @if évalue searchKeyword comme booléen — '' est falsy donc masqué,
+         toute saisie fait apparaître l'indicateur -->
+    @if (searchKeyword) {
+      <p class="search-feedback">
+        Recherche active : "{{ searchKeyword }}"
+      </p>
+    }
+
+    <!-- Boutons radio liés à filterStatus via [(ngModel)] -->
+    <!-- POURQUOI: name="filter" regroupe les radios (un seul sélectionné à la fois,
+         comportement HTML natif). [(ngModel)] sur chaque radio synchronise filterStatus
+         avec la valeur du bouton coché -->
+    <div class="filter-group">
+
+      <label>
+        <input
+          type="radio"
+          name="filter"
+          [(ngModel)]="filterStatus"
+          value="all"
+        >
+        Toutes
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="filter"
+          [(ngModel)]="filterStatus"
+          value="pending"
+        >
+        En cours
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="filter"
+          [(ngModel)]="filterStatus"
+          value="completed"
+        >
+        Terminées
+      </label>
+
+    </div>
+
+    <!-- Compteur réévalué automatiquement à chaque changement de filterStatus -->
+    <!-- POURQUOI: Le two-way binding sur les radios modifie filterStatus, Angular détecte
+         le changement et réévalue getFilteredCount() — zéro manipulation DOM manuelle -->
+    <p class="filter-count">
+      {{ getFilteredCount() }} tâche(s) affichée(s)
+    </p>
+  </div>
+
+  <!-- Liste des tâches -->
+  <ul class="task-list">
+
+    <!-- @for parcourt le tableau tasks, track identifie chaque élément par son id -->
+    <!-- POURQUOI: Sans track, Angular recrée tous les éléments du DOM à chaque changement ;
+         avec track task.id, il réutilise les éléments existants (meilleure performance) -->
+    @for (task of tasks; track task.id) {
+
+      <!-- [class.task-completed] estompe visuellement la carte si la tâche est terminée -->
+      <li
+        class="task-item"
+        [class.task-completed]="task.completed"
+      >
+
+        <!-- Badge avec classe fixe 'badge' + classe dynamique de priorité -->
+        <!-- POURQUOI: 'badge' applique le style commun, getPriorityClass() ajoute la couleur -->
+        <span [class]="'badge ' + getPriorityClass(task)">
+          {{ getPriorityLabel(task) }}
+        </span>
+
+        <!-- Titre et description via interpolation -->
+        <div class="task-content">
+          <!-- Titre barré visuellement si la tâche est terminée -->
+          <h3
+            [style.text-decoration]="
+              task.completed ? 'line-through' : 'none'
+            "
+          >
+            {{ task.title }}
+          </h3>
+
+          <!-- Fallback ?? pour éviter l'affichage de "null" -->
+          <p class="task-description">
+            {{ task.description ?? 'Aucune description.' }}
+          </p>
+        </div>
+
+        <!-- Event binding — au clic, inverse task.completed -->
+        <!-- POURQUOI: Angular détecte le changement et met à jour tous les bindings
+             dépendants (classe, style barré, libellé du bouton) automatiquement -->
+        <button
+          class="btn-toggle"
+          (click)="toggleCompleted(task)"
+        >
+          {{
+            task.completed
+              ? 'Rouvrir'
+              : 'Marquer terminée'
+          }}
+        </button>
+
+      </li>
+
+    }
+
+  </ul>
+
+</div>
