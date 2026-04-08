@@ -1,3 +1,4 @@
+// Import du trio Input/Output/EventEmitter pour la communication inter-composants
 import {
   Component,
   Input,
