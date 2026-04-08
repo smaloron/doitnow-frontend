@@ -1,64 +1,111 @@
-<div
-  class="task-card"
-  [class.task-completed]="task.completed"
-  [class.overdue]="isOverdue()">
-
-  <div class="task-header">
-    <!-- Titre barré visuellement si la tâche est terminée -->
-    <!-- POURQUOI: Retour visuel immédiat — l'utilisateur comprend le statut
-         sans lire le texte explicite -->
-    <h3 class="task-title"
-        [style.text-decoration]="
-          task.completed ? 'line-through' : 'none'
-        ">
-      {{ task.title }}
+<!-- task-card.component.html -->
+<article
+  [ngClass]="{
+    'task-card': true,
+    'task-card--completed': task.completed,
+    'task-card--overdue': isOverdue()
+  }"
+>
+  <!-- En-tête contenant le titre et le badge de priorité -->
+  <div class="task-card__header">
+    <h3
+      class="task-card__title"
+      [ngStyle]="{
+        'text-decoration': task.completed
+          ? 'line-through' : 'none',
+        'opacity': task.completed ? '0.6' : '1'
+      }"
+    >
+      <!-- titlecase transforme "rédiger le rapport" en "Rédiger Le Rapport" -->
+      {{ task.title | titlecase }}
     </h3>
 
-    <!-- @if conditionnel — l'élément n'existe dans le DOM que si isOverdue() est true -->
-    <!-- POURQUOI: @if (successeur de *ngIf) ajoute/retire l'élément du DOM plutôt que
-         de le cacher avec display:none — plus performant car Angular ne gère pas
-         le change detection d'un élément absent -->
-    @if (isOverdue()) {
-      <span class="overdue-badge">En retard</span>
+    <span
+      class="badge badge-priority"
+      [ngStyle]="{
+        'background-color': getPriorityColor()
+      }"
+    >
+      <!-- @switch traduit les codes internes en libellés français -->
+      @switch (task.priority) {
+        @case ('LOW')    { Basse }
+        @case ('MEDIUM') { Moyenne }
+        @case ('HIGH')   { Haute }
+        @case ('URGENT') { Urgente }
+      }
+    </span>
+  </div>
+
+  <!-- Indication d'urgence selon la priorité -->
+  <p class="priority-hint">
+    @switch (task.priority) {
+      @case ('LOW') {
+        Aucune urgence
+      }
+      @case ('MEDIUM') {
+        À traiter bientôt
+      }
+      @case ('HIGH') {
+        Important
+      }
+      @case ('URGENT') {
+        À traiter immédiatement
+      }
+    }
+  </p>
+
+  <!-- N'affiche le bloc description que si elle existe -->
+  <div class="task-description">
+    @if (task.description) {
+      <p>{{ task.description }}</p>
+    } @else {
+      <p class="text-muted">
+        Aucune description fournie.
+      </p>
     }
   </div>
 
-  <!-- Affichage de la description avec fallback via ?? -->
-  <!-- POURQUOI: L'API peut renvoyer null pour description — sans ??,
-       l'utilisateur verrait le texte "null" affiché, ce qui est une mauvaise UX -->
-  <p class="task-description">
-    {{ task.description ?? 'Aucune description fournie.' }}
-  </p>
+  <!-- Bloc des dates de création et d'échéance -->
+  <div class="task-card__dates">
+    <span class="task-card__created">
+      Créée le
+      {{ task.createdAt | date:'d MMMM yyyy' }}
+    </span>
 
-  <!-- Ternaire pour convertir le booléen completed en texte lisible -->
-  <!-- POURQUOI: Sans conversion, l'utilisateur verrait "true" ou "false"
-       à l'écran, ce qui n'est pas exploitable -->
-  <p class="task-status">
-    Statut : {{ task.completed ? 'Terminée' : 'En cours' }}
-  </p>
+    @if (task.dueDate) {
+      <span
+        [ngClass]="{
+          'task-card__due': true,
+          'task-card__due--overdue': isOverdue()
+        }"
+      >
+        @if (isOverdue()) { En retard — }
+        {{ task.dueDate | relativeDate }}
+      </span>
+    } @else {
+      <span class="task-card__due--none">
+        Sans échéance
+      </span>
+    }
+  </div>
 
-  <!-- Badge avec classe fixe 'badge' + classe dynamique de priorité -->
-  <!-- POURQUOI: 'badge' applique le style commun (padding, border-radius),
-       la classe dynamique de getPriorityClass() ajoute la couleur spécifique -->
-  <span [class]="'badge ' + getPriorityClass()">
-    Priorité : {{ getPriorityLabel() }}
-  </span>
+  <!-- Bloc des tags avec titlecase pour uniformiser l'affichage -->
+  <div class="task-card__tags">
+    @for (tag of task.tags; track tag) {
+      <span class="tag">{{ tag | titlecase }}</span>
+    } @empty {
+      <span class="no-tag">Aucun tag</span>
+    }
+  </div>
 
-  <!-- Affichage brut de la date ISO 8601 -->
-  <!-- POURQUOI: Le formatage lisible ("27 mars 2026") sera fait avec les pipes
-       Angular en partie 1.5 — on affiche la valeur brute pour l'instant -->
-  <p class="task-meta">
-    Créée le : {{ task.createdAt }}
-  </p>
-
-  <p class="task-due-date">{{ getDueDateLabel() }}</p>
-
-  <p class="task-tags">{{ getTagsLabel() }}</p>
+  <!-- Badge de statut (terminée / en cours) -->
+  @if (task.completed) {
+    <span class="badge badge-success">Terminée</span>
+  } @else {
+    <span class="badge badge-pending">En cours</span>
+  }
 
   <div class="task-actions">
-    <!-- Event binding (click) + opérateur ternaire pour adapter le libellé du bouton -->
-    <!-- POURQUOI: Si la tâche est terminée, on propose "Réouvrir", sinon "Terminer" —
-         le libellé s'adapte automatiquement à l'état de la tâche -->
     <button
       class="btn-toggle"
       (click)="onToggleComplete()">
@@ -66,9 +113,6 @@
         ? 'Réouvrir'
         : 'Terminer' }}
     </button>
-    <!-- [disabled] grise le bouton, (click) passe $event pour stopPropagation() -->
-    <!-- POURQUOI: Une tâche terminée passe en archive avant suppression (règle métier) —
-         le bouton désactivé reflète cette contrainte dans l'interface -->
     <button
       class="btn-delete"
       [disabled]="task.completed"
@@ -76,4 +120,4 @@
       {{ task.completed ? 'Archivée' : 'Supprimer' }}
     </button>
   </div>
-</div>
+</article>

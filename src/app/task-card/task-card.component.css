@@ -3,88 +3,76 @@
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
-  /* Animation du changement d'ombre au survol */
-  /* POURQUOI: Un effet de transition (0.2s) est plus naturel qu'un changement instantané */
   transition: box-shadow 0.2s, opacity 0.3s, background-color 0.3s;
 }
 
 .task-card:hover {
-  /* Ombre portée légère au survol */
-  /* POURQUOI: Signale visuellement l'interactivité de la carte */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Style appliqué dynamiquement via [class.task-completed] */
-/* POURQUOI: L'estompage visuel signale immédiatement à l'utilisateur
-   que la tâche est terminée/archivée */
-.task-completed {
+/* Style appliqué dynamiquement via [ngClass] */
+.task-card--completed {
   opacity: 0.6;
   background-color: #f8f9fa;
 }
 
-.task-header {
+/* Bordure gauche rouge sur les cartes en retard */
+.task-card--overdue {
+  border-left: 4px solid #dc3545;
+}
+
+.task-card--urgent {
+  border-left: 4px solid #dc3545;
+}
+
+.task-card__header {
   display: flex;
-  /* space-between pousse le titre à gauche et le badge de priorité à droite */
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
 }
 
-.task-title {
+.task-card__title {
   margin: 0;
   font-size: 1.1rem;
 }
 
-.task-description {
-  color: #666;
-  font-size: 0.9rem;
-  margin: 0.5rem 0 1rem;
-}
-
-.task-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.btn-toggle,
-.btn-delete {
-  padding: 0.4rem 0.8rem;
-  /* Suppression de la bordure par défaut des boutons HTML */
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.btn-toggle {
-  /* Fond bleu clair et texte bleu pour une action neutre/positive */
-  background-color: #e8f0fe;
-  color: #1a73e8;
-}
-
-.btn-delete {
-  /* Fond rouge clair et texte rouge */
-  /* POURQUOI: Signale visuellement une action destructrice (convention UX) */
-  background-color: #fce8e6;
-  color: #d93025;
-}
-
-/* Style commun à tous les badges de priorité */
-/* POURQUOI: Les couleurs spécifiques sont dans les classes ci-dessous,
-   appliquées dynamiquement via [class] — cette séparation évite la duplication */
+/* Style commun des badges */
 .badge {
   display: inline-block;
   padding: 0.2rem 0.6rem;
   border-radius: 4px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  white-space: nowrap;
+  color: white;
+}
+
+.badge-priority {
   text-transform: uppercase;
 }
 
-/* Classes de couleur par niveau de priorité */
-/* POURQUOI: Les noms correspondent exactement aux valeurs retournées par
-   getPriorityClass() ('priority-low', etc.) — la cohérence de nommage
-   entre CSS et TypeScript est indispensable pour que le binding fonctionne */
+.badge-success {
+  background-color: #198754;
+}
+
+.badge-pending {
+  background-color: #0d6efd;
+}
+
+.badge-neutral {
+  background-color: #6c757d;
+}
+
+.badge-overdue {
+  background-color: #dc3545;
+}
+
+.badge-due {
+  background-color: #0d6efd;
+}
+
+/* Classes de couleur par niveau de priorité (pour [ngClass]) */
 .priority-low {
   background-color: #d4edda;
   color: #155724;
@@ -105,20 +93,102 @@
   color: #721c24;
 }
 
-/* Bordure gauche rouge sur les cartes en retard */
-/* POURQUOI: Signal visuel fort et discret — attire l'oeil sans surcharger la carte,
-   contrairement à un fond rouge complet qui serait trop agressif */
-.overdue {
-  border-left: 4px solid #dc3545;
+.priority-hint {
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-style: italic;
+  margin: 0.25rem 0 0.5rem;
 }
 
-/* Badge "En retard" affiché conditionnellement via @if */
-.overdue-badge {
+.task-description {
+  margin: 0.5rem 0;
+}
+
+.task-description p {
+  margin: 0;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.text-muted {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.task-card__dates {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin: 0.5rem 0;
+}
+
+.task-card__created {
+  color: #6c757d;
+}
+
+.task-card__due {
+  color: #0d6efd;
+}
+
+.task-card__due--overdue {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.task-card__due--none {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.task-card__tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0;
+}
+
+.tag {
   display: inline-block;
   padding: 0.15rem 0.5rem;
-  background-color: #dc3545;
-  color: white;
+  background-color: #e8f0fe;
+  color: #1a73e8;
+  border-radius: 16px;
+  font-size: 0.8rem;
+}
+
+.no-tag {
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.task-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.btn-toggle,
+.btn-delete {
+  padding: 0.4rem 0.8rem;
+  border: none;
   border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-toggle {
+  background-color: #e8f0fe;
+  color: #1a73e8;
+}
+
+.btn-delete {
+  background-color: #fce8e6;
+  color: #d93025;
+}
+
+.btn-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
