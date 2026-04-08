@@ -1,0 +1,30 @@
+<!-- book-form.component.html -->
+<!-- [formGroup]="bookForm" connecte ce formulaire HTML au FormGroup TypeScript -->
+<form [formGroup]="bookForm" (ngSubmit)="onSubmit()">
+  <div>
+    <label for="title">Titre</label>
+    <!-- formControlName="title" (sans crochets) relie cet input au FormControl "title" -->
+    <input
+      id="title"
+      type="text"
+      formControlName="title"
+    />
+  </div>
+
+  <div>
+    <label for="author">Auteur</label>
+    <input
+      id="author"
+      type="text"
+      formControlName="author"
+    />
+  </div>
+
+  <!-- [disabled]="bookForm.invalid" désactive le bouton si title ou author est vide -->
+  <button
+    type="submit"
+    [disabled]="bookForm.invalid"
+  >
+    Ajouter
+  </button>
+</form>

@@ -1,0 +1,140 @@
+<!-- job-offer-form.component.html -->
+<form
+  [formGroup]="jobOfferForm"
+  (ngSubmit)="onSubmit()"
+>
+  <!-- Intitulé du poste -->
+  <div>
+    <label for="title">Intitulé du poste *</label>
+    <input
+      id="title"
+      type="text"
+      formControlName="title"
+    />
+    <span
+      *ngIf="title?.errors?.['required'] && title?.touched"
+    >
+      L'intitulé est obligatoire.
+    </span>
+    <span
+      *ngIf="
+        title?.errors?.['minlength'] && title?.touched
+      "
+    >
+      Minimum 5 caractères.
+    </span>
+    <span
+      *ngIf="
+        title?.errors?.['maxlength'] && title?.touched
+      "
+    >
+      Maximum 120 caractères.
+    </span>
+  </div>
+
+  <!-- Département -->
+  <div>
+    <label for="department">Département *</label>
+    <select
+      id="department"
+      formControlName="department"
+    >
+      <!-- Option vide comme placeholder -->
+      <!-- POURQUOI: Force l'utilisateur à faire un choix explicite -->
+      <option value="">-- Sélectionnez --</option>
+      <option
+        *ngFor="let d of departments"
+        [value]="d"
+      >
+        {{ d }}
+      </option>
+    </select>
+    <span
+      *ngIf="
+        department?.invalid && department?.touched
+      "
+    >
+      Veuillez sélectionner un département.
+    </span>
+  </div>
+
+  <!-- Description -->
+  <div>
+    <label for="description">Description</label>
+    <textarea
+      id="description"
+      formControlName="description"
+      rows="4"
+    ></textarea>
+    <span
+      *ngIf="
+        description?.errors?.['maxlength']
+        && description?.touched
+      "
+    >
+      Maximum 1000 caractères.
+    </span>
+  </div>
+
+  <!-- Compétences requises — FormArray -->
+  <div formArrayName="skills">
+    <p>Compétences requises *</p>
+    <div
+      *ngFor="
+        let skill of skills.controls;
+        let i = index
+      "
+    >
+      <!-- [formControlName]="i" avec crochets car i est un index numérique -->
+      <input
+        [formControlName]="i"
+        type="text"
+        placeholder="Ex : TypeScript, Angular..."
+      />
+      <button
+        type="button"
+        (click)="removeSkill(i)"
+      >
+        Retirer
+      </button>
+    </div>
+    <!-- Message affiché quand le FormArray est vide -->
+    <span *ngIf="skills.length === 0">
+      Au moins une compétence est requise.
+    </span>
+    <button type="button" (click)="addSkill()">
+      Ajouter une compétence
+    </button>
+  </div>
+
+  <!-- Télétravail -->
+  <div>
+    <label>
+      <input
+        type="checkbox"
+        formControlName="remote"
+      />
+      Poste en télétravail
+    </label>
+  </div>
+
+  <!-- Date limite -->
+  <div>
+    <label for="deadline">Date limite de candidature</label>
+    <input
+      id="deadline"
+      type="date"
+      formControlName="deadline"
+    />
+  </div>
+
+  <!-- [disabled]="!canSubmit" combine formulaire valide ET au moins une compétence -->
+  <button
+    type="submit"
+    [disabled]="!canSubmit"
+  >
+    <!-- Libellé adaptatif création / édition -->
+    {{ jobOffer ? "Modifier l'offre" : "Publier l'offre" }}
+  </button>
+
+</form>

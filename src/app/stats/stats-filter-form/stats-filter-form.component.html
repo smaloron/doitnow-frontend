@@ -1,0 +1,65 @@
+<!-- stats-filter-form.component.html -->
+<form
+  [formGroup]="filterForm"
+  (ngSubmit)="onSubmit()"
+>
+  <!-- Priorité -->
+  <div>
+    <label for="priority">Priorité</label>
+    <select id="priority" formControlName="priority">
+      <option
+        *ngFor="let p of priorities"
+        [value]="p"
+      >
+        {{ p }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Tags dynamiques -->
+  <!-- formArrayName="tags" délimite la zone de résolution du FormArray "tags" -->
+  <div formArrayName="tags">
+    <p>Filtrer par tags</p>
+    <div
+      *ngFor="
+        let tag of tags.controls;
+        let i = index
+      "
+    >
+      <!-- [formControlName]="i" avec crochets car i est un nombre, pas une chaîne littérale -->
+      <input
+        [formControlName]="i"
+        type="text"
+        placeholder="Tag {{ i + 1 }}"
+      />
+      <!-- type="button" pour ne pas soumettre le formulaire par accident -->
+      <button
+        type="button"
+        (click)="removeTag(i)"
+      >
+        Retirer
+      </button>
+    </div>
+    <button type="button" (click)="addTag()">
+      Ajouter un tag
+    </button>
+  </div>
+
+  <!-- Case à cocher -->
+  <div>
+    <label>
+      <input
+        type="checkbox"
+        formControlName="showCompleted"
+      />
+      Inclure les tâches terminées
+    </label>
+  </div>
+
+  <button
+    type="submit"
+    [disabled]="filterForm.invalid"
+  >
+    Appliquer les filtres
+  </button>
+</form>

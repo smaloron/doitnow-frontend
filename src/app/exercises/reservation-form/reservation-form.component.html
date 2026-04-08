@@ -1,0 +1,52 @@
+<!-- reservation-form.component.html -->
+<form
+  [formGroup]="reservationForm"
+  (ngSubmit)="onSubmit()"
+>
+  <div>
+    <label for="roomName">Salle</label>
+    <input
+      id="roomName"
+      type="text"
+      formControlName="roomName"
+    />
+    <!-- Condition invalid && touched pour l'affichage de l'erreur -->
+    <!-- POURQUOI: On n'affiche l'erreur qu'après que l'utilisateur a quitté le champ (touched) -->
+    <span
+      *ngIf="roomName?.invalid && roomName?.touched"
+    >
+      Ce champ est obligatoire.
+    </span>
+  </div>
+
+  <div>
+    <label for="date">Date</label>
+    <input
+      id="date"
+      type="date"
+      formControlName="date"
+    />
+    <span *ngIf="date?.invalid && date?.touched">
+      Ce champ est obligatoire.
+    </span>
+  </div>
+
+  <div>
+    <label for="duration">Durée (minutes)</label>
+    <input
+      id="duration"
+      type="number"
+      formControlName="duration"
+    />
+    <span *ngIf="duration?.invalid && duration?.touched">
+      Ce champ est obligatoire.
+    </span>
+  </div>
+
+  <button
+    type="submit"
+    [disabled]="reservationForm.invalid"
+  >
+    Réserver
+  </button>
+</form>
