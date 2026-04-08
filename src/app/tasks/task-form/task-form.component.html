@@ -3,7 +3,7 @@
   <h1>Nouvelle tâche</h1>
 
   <form
-    [formGroup]="taskForm"
+    [formGroup]="form"
     (ngSubmit)="onSubmit()"
     novalidate
   >
@@ -26,7 +26,7 @@
         <span *ngIf="hasError('title', 'minlength')">
           Le titre doit contenir au moins
           {{
-            taskForm.get('title')
+            form.get('title')
               ?.errors?.['minlength']?.requiredLength
           }}
           caractères.
@@ -35,7 +35,7 @@
         <span *ngIf="hasError('title', 'maxlength')">
           Le titre ne peut pas dépasser
           {{
-            taskForm.get('title')
+            form.get('title')
               ?.errors?.['maxlength']?.requiredLength
           }}
           caractères.
@@ -43,6 +43,10 @@
         <!-- Message pour titre contenant uniquement des espaces -->
         <span *ngIf="hasError('title', 'whitespaceOnly')">
           Le titre ne peut pas contenir uniquement des espaces.
+        </span>
+        <!-- Erreur serveur injectée via setErrors -->
+        <span *ngIf="hasError('title', 'serverError')">
+          {{ form.get('title')?.getError('serverError') }}
         </span>
       </div>
     </div>
@@ -100,13 +104,31 @@
         type="date"
         formControlName="dueDate"
       />
+      <!-- Affiche l'erreur serveur injectée via setErrors({ serverError: "..." }) -->
+      @if (dueDate.touched && dueDate.hasError('serverError')) {
+        <p class="error">
+          {{ dueDate.getError('serverError') }}
+        </p>
+      }
     </div>
 
+    <!-- Erreur globale -->
+    @if (globalError) {
+      <div class="alert alert--error" role="alert">
+        {{ globalError }}
+      </div>
+    }
+
+    <!-- Désactive le bouton si formulaire invalide OU appel HTTP en cours -->
     <button
       type="submit"
-      [disabled]="taskForm.invalid"
+      [disabled]="form.invalid || isLoading"
     >
-      Créer la tâche
+      @if (isLoading) {
+        Création en cours...
+      } @else {
+        Créer la tâche
+      }
     </button>
   </form>
 </div>

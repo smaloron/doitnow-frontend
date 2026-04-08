@@ -1,121 +1,103 @@
-<!-- register.component.html — version finale complète -->
-<div class="register-container">
+<!-- register.component.html -->
+<form
+  [formGroup]="form"
+  (ngSubmit)="onSubmit()"
+  novalidate
+>
   <h1>Créer un compte</h1>
 
-  <!-- novalidate désactive la validation HTML5 -->
-  <!-- POURQUOI: laisse Angular seul maître de la validation — évite les doublons avec les bulles navigateur -->
-  <form
-    [formGroup]="registerForm"
-    (ngSubmit)="onSubmit()"
-    novalidate
+  <!-- Champ e-mail -->
+  <div class="field">
+    <label for="email">Adresse e-mail</label>
+    <input
+      id="email"
+      type="email"
+      formControlName="email"
+      autocomplete="email"
+      [class.field--error]="email.touched && email.invalid"
+      [class.field--success]="email.touched && email.valid"
+    />
+    @if (email.touched && email.hasError('required')) {
+      <p class="error">L'adresse e-mail est obligatoire.</p>
+    }
+    @if (email.touched && email.hasError('email')) {
+      <p class="error">Format d'adresse e-mail invalide.</p>
+    }
+    <!-- emailTaken est une erreur injectée depuis le serveur via handleError() -->
+    @if (email.touched && email.hasError('emailTaken')) {
+      <p class="error">
+        Cette adresse est déjà associée à un compte.
+      </p>
+    }
+  </div>
+
+  <!-- Champ mot de passe -->
+  <div class="field">
+    <label for="password">Mot de passe</label>
+    <input
+      id="password"
+      type="password"
+      formControlName="password"
+      autocomplete="new-password"
+      [class.field--error]="
+        password.touched && password.invalid
+      "
+      [class.field--success]="
+        password.touched && password.valid
+      "
+    />
+    @if (password.touched && password.hasError('required')) {
+      <p class="error">Le mot de passe est obligatoire.</p>
+    }
+    @if (password.touched && password.hasError('minlength')) {
+      <p class="error">
+        Le mot de passe doit contenir au moins 8 caractères.
+      </p>
+    }
+  </div>
+
+  <!-- Confirmation du mot de passe -->
+  <div class="field">
+    <label for="confirmPassword">
+      Confirmer le mot de passe
+    </label>
+    <input
+      id="confirmPassword"
+      type="password"
+      formControlName="confirmPassword"
+      autocomplete="new-password"
+      [class.field--error]="
+        confirmPassword.touched && confirmPassword.invalid
+      "
+    />
+    <!-- passwordMismatch est portée par le FormGroup, pas par un contrôle individuel -->
+    <!-- POURQUOI: Le validateur compare deux champs, donc il est au niveau groupe -->
+    @if (
+      confirmPassword.touched &&
+      form.hasError('passwordMismatch')
+    ) {
+      <p class="error">
+        Les mots de passe ne correspondent pas.
+      </p>
+    }
+  </div>
+
+  <!-- Bandeau d'erreur global -->
+  @if (globalError) {
+    <div class="alert alert--error" role="alert">
+      {{ globalError }}
+    </div>
+  }
+
+  <!-- Désactivé dans trois situations : invalid, pending (validateur async), isLoading -->
+  <button
+    type="submit"
+    [disabled]="form.invalid || form.pending || isLoading"
   >
-
-    <!-- Champ email -->
-    <div class="form-group">
-      <label for="email">Adresse email *</label>
-      <div class="input-wrapper">
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="votre@email.com"
-          autocomplete="email"
-        />
-        <!-- Spinner affiché pendant l'état pending du validateur asynchrone -->
-        <span
-          *ngIf="registerForm.get('email')?.pending"
-          class="spinner"
-          aria-live="polite"
-          aria-label="Vérification en cours"
-        >
-          Vérification...
-        </span>
-      </div>
-
-      <div class="error-messages" role="alert">
-        <span *ngIf="hasError('email', 'required')">
-          L'adresse email est obligatoire.
-        </span>
-        <span *ngIf="hasError('email', 'email')">
-          Veuillez saisir une adresse email valide.
-        </span>
-        <!-- Erreur asynchrone emailExists -->
-        <span *ngIf="hasError('email', 'emailExists')">
-          Cette adresse est déjà associée à un compte.
-        </span>
-      </div>
-    </div>
-
-    <!-- Champ mot de passe -->
-    <div class="form-group">
-      <label for="password">Mot de passe *</label>
-      <input
-        id="password"
-        type="password"
-        formControlName="password"
-        autocomplete="new-password"
-      />
-
-      <div class="error-messages" role="alert">
-        <span *ngIf="hasError('password', 'required')">
-          Le mot de passe est obligatoire.
-        </span>
-        <!-- Lecture dynamique de requiredLength depuis l'objet d'erreur minlength -->
-        <span *ngIf="hasError('password', 'minlength')">
-          Le mot de passe doit contenir au moins
-          {{
-            registerForm.get('password')
-              ?.errors?.['minlength']?.requiredLength
-          }}
-          caractères.
-        </span>
-      </div>
-    </div>
-
-    <!-- Champ confirmation -->
-    <div class="form-group">
-      <label for="confirmPassword">
-        Confirmer le mot de passe *
-      </label>
-      <input
-        id="confirmPassword"
-        type="password"
-        formControlName="confirmPassword"
-        autocomplete="new-password"
-      />
-
-      <div class="error-messages" role="alert">
-        <span
-          *ngIf="
-            hasError('confirmPassword', 'required')
-          "
-        >
-          La confirmation est obligatoire.
-        </span>
-        <!-- Erreur passwordMismatch lue sur registerForm.errors (niveau groupe) -->
-        <span
-          *ngIf="
-            registerForm.errors?.['passwordMismatch'] &&
-            registerForm.get('confirmPassword')?.touched
-          "
-        >
-          Les mots de passe ne correspondent pas.
-        </span>
-      </div>
-    </div>
-
-    <!-- Bouton de soumission -->
-    <button
-      type="submit"
-      [disabled]="isSubmitDisabled"
-    >
+    @if (isLoading) {
+      Inscription en cours...
+    } @else {
       S'inscrire
-    </button>
-
-  </form>
-
-  <p>
-    Déjà un compte ?
-    <a routerLink="/login">Se connecter</a>
-  </p>
-</div>
+    }
+  </button>
+</form>
