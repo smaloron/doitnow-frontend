@@ -1,30 +1,42 @@
-// Type union — Priority ne peut prendre que l'une de ces quatre valeurs
-// POURQUOI: Empêche de passer accidentellement une chaîne invalide comme 'CRITICAL' ou 'low' —
-// TypeScript signale toute valeur non reconnue à la compilation, avant l'exécution
-export type Priority =
-  'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+// type union listant les valeurs littérales autorisées pour la priorité
+// POURQUOI: TypeScript refusera à la compilation toute valeur hors liste,
+// détectant les fautes de frappe avant même l'exécution
+export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
-// Interface définissant la "forme" d'un objet Task (contrat de données partagé)
-// POURQUOI: Elle n'existe qu'à la compilation (disparaît dans le JavaScript final) mais garantit
-// que tous les composants et services utilisent la même structure pour représenter une tâche
+// interface TypeScript décrivant la forme exacte d'une tâche
+// POURQUOI: n'existe qu'à la compilation (zéro JavaScript généré), mais permet
+// à l'éditeur et au compilateur de valider chaque accès à une propriété
 export interface Task {
-  id: string;
-  title: string;
-  // "| null" indique que la description est optionnelle
-  // POURQUOI: Plus précis qu'une string vide "" — distingue "l'utilisateur a laissé vide"
-  // de "ce champ n'existe pas"
-  description: string | null;
-  completed: boolean;
-  userId: string;
-  // Réutilisation du type Priority défini au-dessus
-  // POURQUOI: Garantit que seules les valeurs valides peuvent être assignées
-  priority: Priority;
-  // Tableau de chaînes pour les labels des tags
-  tags: string[];
-  // Dates stockées comme chaînes ISO 8601 (ex: "2026-04-15")
-  // POURQUOI: JSON ne connaît pas le type Date natif — toutes les dates transitent
-  // via l'API sous forme de texte
-  dueDate: string | null;
-  createdAt: string;
-  updatedAt: string;
+  id: string;                  // Identifiant unique fourni par l'API (UUID)
+  title: string;               // Libellé obligatoire, jamais absent ni null
+  description: string | null;  // "| null" : champ autorisé à être absent
+  completed: boolean;          // false = à faire, true = terminée
+  userId: string;              // Référence à l'utilisateur propriétaire
+  priority: Priority;          // Limité aux 4 valeurs du type ci-dessus
+  tags: string[];              // Tableau d'étiquettes, vide si aucune
+  dueDate: string | null;      // Format YYYY-MM-DD, null si pas d'échéance
+  createdAt: string;           // ISO 8601 ex : "2026-03-20T10:30:00"
+  updatedAt: string;           // Mis à jour automatiquement à chaque modification
+}
+
+// DTO (Data Transfer Object) contenant uniquement les champs
+// que l'utilisateur renseigne pour créer une tâche
+// POURQUOI: "id", "createdAt" et "updatedAt" sont générés côté serveur —
+// les inclure ici serait trompeur. Le "?" rend un champ optionnel :
+// le service appliquera des valeurs par défaut pour les champs absents
+export interface CreateTaskDTO {
+  title: string;          // Seul champ obligatoire pour créer une tâche
+  description?: string;   // Optionnel — absent = pas de description
+  priority?: Priority;    // Optionnel — valeur par défaut : 'MEDIUM'
+  tags?: string[];        // Optionnel — valeur par défaut : []
+  dueDate?: string;       // Optionnel — la tâche peut n'avoir aucune échéance
+}
+
+// interface dédiée aux statistiques agrégées sur les tâches
+// POURQUOI: séparée de Task pour ne pas mélanger les données brutes (issues
+// de l'API) avec des valeurs calculées localement — responsabilités distinctes
+export interface TaskStats {
+  total: number;      // Nombre total de tâches dans la liste
+  completed: number;  // Nombre de tâches dont completed === true
+  pending: number;    // Nombre de tâches dont completed === false
 }

@@ -1,7 +1,8 @@
 // src/app/task-list/task-list.component.ts
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Task } from '../models/task.model';
+import { Task, TaskStats } from '../models/task.model';
+import { TaskService } from '../services/task.service';
 
 @Component({
   selector: 'app-task-list',
@@ -12,7 +13,13 @@ import { Task } from '../models/task.model';
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css',
 })
-export class TaskListComponent {
+export class TaskListComponent implements OnInit {
+
+  // le composant ne contient plus aucune donnée en dur —
+  // TaskService est la seule source de vérité
+  // POURQUOI: "private" car le template passe par les propriétés publiques
+  // "tasks" et "stats" — il n'accède pas au service directement
+  private taskService = inject(TaskService);
 
   // Propriété liée au champ de recherche via [(ngModel)]
   // POURQUOI: Initialisée à '' pour éviter les erreurs sur .length ou .includes()
@@ -24,65 +31,41 @@ export class TaskListComponent {
   // des fautes de frappe et rend les états possibles explicites
   filterStatus: 'all' | 'pending' | 'completed' = 'all';
 
-  // Données statiques en dur (backend non connecté)
-  // POURQUOI: Permet de tester l'interface sans dépendance externe — sera remplacé
-  // par un appel au TaskService injectable (partie 1.4)
-  tasks: Task[] = [
-    {
-      id: '1',
-      title: 'Rédiger le rapport Q3',
-      description: 'Inclure les chiffres de ventes',
-      completed: false,
-      userId: 'user-1',
-      priority: 'HIGH',
-      tags: ['rapport', 'finance'],
-      dueDate: '2026-04-03',
-      createdAt: '2026-03-27T10:30:00',
-      updatedAt: '2026-03-27T10:30:00',
-    },
-    {
-      id: '2',
-      title: 'Préparer la réunion client',
-      description: null,
-      completed: true,
-      userId: 'user-1',
-      priority: 'URGENT',
-      tags: ['réunion'],
-      dueDate: null,
-      createdAt: '2026-03-26T09:00:00',
-      updatedAt: '2026-03-27T08:00:00',
-    },
-    {
-      id: '3',
-      title: 'Apprendre Angular',
-      description: 'Suivre la formation DoItNow',
-      completed: false,
-      userId: 'user-1',
-      priority: 'MEDIUM',
-      tags: ['formation', 'angular'],
-      dueDate: '2026-04-15',
-      createdAt: '2026-03-25T14:00:00',
-      updatedAt: '2026-03-25T14:00:00',
-    },
-  ];
+  // tableau public itérable par @for dans le template
+  // POURQUOI: initialisé à [] pour éviter toute erreur avant ngOnInit()
+  tasks: Task[] = [];
+
+  // objet public lisible par le template via {{ stats.total }}, etc.
+  // POURQUOI: initialisé à zéro car le template peut être évalué avant ngOnInit()
+  stats: TaskStats = {
+    total: 0,
+    completed: 0,
+    pending: 0
+  };
+
+  ngOnInit(): void {
+    // chargement des tâches une seule fois au démarrage
+    // POURQUOI: getTasks() retourne une copie — this.tasks est indépendant
+    // du tableau interne du service
+    this.tasks = this.taskService.getTasks();
+    this.updateStats();
+  }
 
   /**
    * Bascule l'état de complétion d'une tâche.
    */
   toggleCompleted(task: Task): void {
-    // Modification directe de la propriété de l'objet reçu par référence
-    // POURQUOI: tasks[] contient des références — la modification est reflétée
-    // dans le tableau et Angular détecte le changement automatiquement
-    task.completed = !task.completed;
+    // Modification via le service pour garder la cohérence
+    this.taskService.toggleComplete(task.id);
+    // Recharger les tâches depuis le service
+    this.tasks = this.taskService.getTasks();
+    this.updateStats();
   }
 
   /**
    * Retourne la classe CSS pour le badge de priorité.
    */
   getPriorityClass(task: Task): string {
-    // Génération dynamique du nom de classe CSS
-    // POURQUOI: toLowerCase() convertit 'HIGH' en 'high' pour correspondre aux classes
-    // CSS (.priority-high) — la cohérence entre TypeScript et CSS est indispensable
     return `priority-${task.priority.toLowerCase()}`;
   }
 
@@ -96,9 +79,6 @@ export class TaskListComponent {
       HIGH: 'Haute',
       URGENT: 'Urgente',
     };
-    // Fallback avec ?? pour les priorités non mappées
-    // POURQUOI: Si l'API ajoute une nouvelle priorité pas encore dans le dictionnaire,
-    // on affiche la valeur brute plutôt que "undefined"
     return labels[task.priority] ?? task.priority;
   }
 
@@ -106,9 +86,6 @@ export class TaskListComponent {
    * Retourne le nombre de tâches non terminées.
    */
   getPendingCount(): number {
-    // Filtre les tâches non terminées et retourne leur nombre
-    // POURQUOI: Appelée à chaque cycle de détection Angular — le compteur reste
-    // toujours synchronisé avec l'état réel après chaque toggleCompleted()
     return this.tasks.filter(t => !t.completed).length;
   }
 
@@ -118,12 +95,10 @@ export class TaskListComponent {
   getFilteredCount(): number {
     switch (this.filterStatus) {
       case 'pending':
-        // filter() crée un nouveau tableau des tâches non terminées
         return this.tasks.filter(t => !t.completed).length;
       case 'completed':
         return this.tasks.filter(t => t.completed).length;
       default:
-        // Cas 'all' — pas de filtrage, on retourne le total
         return this.tasks.length;
     }
   }
@@ -132,9 +107,17 @@ export class TaskListComponent {
    * Réinitialise le champ de recherche.
    */
   clearSearch(): void {
-    // Réinitialisation de searchKeyword à chaîne vide
-    // POURQUOI: Grâce au two-way binding, le champ HTML se vide instantanément
-    // sans manipulation DOM — le composant pilote l'UI, pas l'inverse
     this.searchKeyword = '';
+  }
+
+  /**
+   * Met à jour les statistiques à partir du tableau local.
+   */
+  private updateStats(): void {
+    this.stats = {
+      total: this.tasks.length,
+      completed: this.tasks.filter(t => t.completed).length,
+      pending: this.tasks.filter(t => !t.completed).length
+    };
   }
 }

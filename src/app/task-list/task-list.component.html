@@ -5,6 +5,13 @@
   <div class="task-list-header">
     <h2 class="list-title">Mes tâches</h2>
 
+    <!-- Statistiques issues du TaskService -->
+    <div class="stats">
+      <p>Total : {{ stats.total }}</p>
+      <p>Complètes : {{ stats.completed }}</p>
+      <p>En attente : {{ stats.pending }}</p>
+    </div>
+
     <!-- Compteur réévalué automatiquement à chaque changement d'état -->
     <p class="task-counter">
       {{ getPendingCount() }} en cours
