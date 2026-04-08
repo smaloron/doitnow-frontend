@@ -1,145 +1,140 @@
 // src/app/services/task.service.ts
 import { Injectable } from '@angular/core';
-import {
-  Task,
-  CreateTaskDTO,
-  Priority
-} from '../models/task.model';
+import { Task } from '../models/task.model';
 
 @Injectable({
-  // Singleton — une instance unique partagée par toute l'application
-  // POURQUOI: tous les composants qui affichent ou modifient des tâches lisent
-  // la même source de données — sans cela, les affichages se désynchronisent
+  // enregistre le service comme singleton au niveau racine de l'application
+  // POURQUOI: providedIn 'root' permet le tree-shaking — si le service n'est jamais injecté, il est exclu du bundle
   providedIn: 'root'
 })
 export class TaskService {
-  // Méthode privée calculant une date relative à aujourd'hui (positif = futur, négatif = passé)
-  // POURQUOI: Utilitaire interne pour générer les données de test
-  private daysFromNow(days: number): string {
-    const d = new Date(
-      Date.now() + days * 24 * 60 * 60 * 1000
-    );
-    // split('T')[0] extrait la partie date "2026-03-30" de la chaîne ISO complète
-    return d.toISOString().split('T')[0];
-  }
 
-  // tableau privé accessible uniquement via les méthodes publiques
-  // POURQUOI: forcer le passage par getTasks(), createTask(), etc. donne au
-  // service un contrôle total sur les mutations
+  // données de démonstration reproduisant le jeu de données inséré par le backend
+  // POURQUOI: permet de développer et tester les composants sans dépendre du backend
   private tasks: Task[] = [
     {
       id: '1',
-      title: 'rédiger le rapport trimestriel',
-      description: 'Inclure les indicateurs Q1.',
+      title: 'Rédiger le rapport Q3',
+      description: 'Consolider les indicateurs financiers'
+        + ' et les présenter à la direction.',
       completed: false,
-      userId: 'u1',
+      userId: 'user-1',
       priority: 'HIGH',
       tags: ['rapport', 'finance'],
-      dueDate: this.daysFromNow(3),
+      dueDate: '2026-04-03',
       createdAt: '2026-03-20T09:00:00',
-      updatedAt: '2026-03-20T09:00:00',
+      updatedAt: '2026-03-20T09:00:00'
     },
     {
       id: '2',
-      title: 'corriger les tests unitaires',
-      description: null,
-      completed: true,
-      userId: 'u1',
-      priority: 'MEDIUM',
-      tags: ['dev', 'qualité'],
-      dueDate: this.daysFromNow(-5),
-      createdAt: '2026-03-15T14:00:00',
-      updatedAt: '2026-03-26T10:00:00',
+      title: 'Corriger le bug #472',
+      description: 'L\'écran de connexion plante sur Safari'
+        + ' 17 en mode privé.',
+      completed: false,
+      userId: 'user-1',
+      priority: 'URGENT',
+      tags: ['bug', 'frontend'],
+      dueDate: '2026-03-28',
+      createdAt: '2026-03-25T14:30:00',
+      updatedAt: '2026-03-25T14:30:00'
     },
     {
       id: '3',
-      title: 'réunion de sprint',
-      description: 'Préparer le point avancement.',
-      completed: false,
-      userId: 'u1',
-      priority: 'URGENT',
-      tags: ['réunion'],
-      dueDate: this.daysFromNow(-2),  // En retard ET non terminée → badge rouge
-      createdAt: '2026-03-27T08:00:00',
-      updatedAt: '2026-03-27T08:00:00',
+      title: 'Revoir la documentation API',
+      description: 'Mettre à jour les exemples Swagger'
+        + ' suite à la migration vers Spring Boot 3.',
+      completed: true,
+      userId: 'user-1',
+      priority: 'MEDIUM',
+      tags: ['doc', 'api'],
+      dueDate: '2026-03-22',
+      createdAt: '2026-03-15T10:00:00',
+      updatedAt: '2026-03-22T16:00:00'
     },
     {
       id: '4',
-      title: 'veille technologique',
+      title: 'Préparer la rétrospective',
       description: null,
       completed: false,
-      userId: 'u1',
+      userId: 'user-1',
       priority: 'LOW',
-      tags: [],
-      dueDate: null,  // Pas d'échéance → badge "Sans échéance"
-      createdAt: '2026-03-10T11:00:00',
-      updatedAt: '2026-03-10T11:00:00',
+      tags: ['agile'],
+      dueDate: '2026-04-10',
+      createdAt: '2026-03-26T08:00:00',
+      updatedAt: '2026-03-26T08:00:00'
     },
     {
       id: '5',
-      title: 'configurer CI/CD',
-      description: 'Mettre en place GitHub Actions',
-      completed: true,
-      userId: 'u1',
-      priority: 'HIGH',
-      tags: ['devops', 'github'],
-      dueDate: null,
-      createdAt: '2026-03-10T11:00:00',
-      updatedAt: '2026-03-25T16:00:00',
+      title: 'Mettre à jour les dépendances npm',
+      description: 'Vérifier les vulnérabilités et passer'
+        + ' Angular en version 18.',
+      completed: false,
+      userId: 'user-1',
+      priority: 'MEDIUM',
+      tags: ['maintenance', 'angular'],
+      dueDate: '2026-04-05',
+      createdAt: '2026-03-24T11:00:00',
+      updatedAt: '2026-03-24T11:00:00'
     },
+    {
+      id: '6',
+      title: 'Rédiger les tests d\'intégration',
+      description: 'Couvrir les endpoints /auth et /tasks'
+        + ' avec Mockito et MockMvc.',
+      completed: false,
+      userId: 'user-1',
+      priority: 'HIGH',
+      tags: ['tests', 'backend'],
+      // date volontairement dans le passé pour tester l'affichage "en retard"
+      dueDate: '2026-03-15',
+      createdAt: '2026-03-10T09:30:00',
+      updatedAt: '2026-03-10T09:30:00'
+    },
+    {
+      id: '7',
+      title: 'Configurer le pipeline CI/CD',
+      description: 'Mettre en place GitHub Actions pour'
+        + ' les builds et les déploiements automatisés.',
+      completed: true,
+      userId: 'user-1',
+      priority: 'HIGH',
+      tags: ['devops', 'ci-cd'],
+      dueDate: '2026-03-20',
+      createdAt: '2026-03-12T14:00:00',
+      updatedAt: '2026-03-20T18:00:00'
+    },
+    {
+      id: '8',
+      title: 'Organiser le kick-off du projet Bêta',
+      description: null,
+      completed: false,
+      userId: 'user-1',
+      priority: 'URGENT',
+      tags: ['management'],
+      dueDate: '2026-03-29',
+      createdAt: '2026-03-27T07:00:00',
+      updatedAt: '2026-03-27T07:00:00'
+    }
   ];
 
-  // retourne une copie du tableau avec l'opérateur spread "[...]"
-  // POURQUOI: sans cette précaution, un composant pourrait corrompre l'état interne
+  // renvoie une copie shallow du tableau de tâches
+  // POURQUOI: le spread [...] crée une nouvelle référence — les composants ne peuvent pas muter le tableau interne
   getTasks(): Task[] {
     return [...this.tasks];
   }
 
-  getTaskById(id: string): Task | undefined {
-    return this.tasks.find(task => task.id === id);
-  }
-
-  getTasksByPriority(priority: Priority): Task[] {
-    return this.tasks.filter(
-      task => task.priority === priority
-    );
-  }
-
-  getOverdueTasks(): Task[] {
-    const today = new Date().toISOString().split('T')[0];
-    return this.tasks.filter(task =>
-      !task.completed &&
-      task.dueDate !== null &&
-      task.dueDate < today
-    );
-  }
-
-  createTask(dto: CreateTaskDTO): Task {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: dto.title,
-      description: dto.description ?? null,
-      completed: false,
-      userId: 'user-1',
-      priority: dto.priority ?? 'MEDIUM',
-      tags: dto.tags ?? [],
-      dueDate: dto.dueDate ?? null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    this.tasks.push(newTask);
-    return newTask;
-  }
-
-  deleteTask(id: string): void {
-    this.tasks = this.tasks.filter(task => task.id !== id);
-  }
-
+  // inverse le booléen completed de la tâche identifiée par son id
+  // POURQUOI: la mutation se fait dans le service (source de vérité unique)
   toggleComplete(id: string): void {
     const task = this.tasks.find(t => t.id === id);
     if (task) {
       task.completed = !task.completed;
-      task.updatedAt = new Date().toISOString();
     }
+  }
+
+  // supprime une tâche du tableau en créant un nouveau tableau filtré
+  // POURQUOI: filter() produit un nouveau tableau plutôt que muter l'existant avec splice
+  deleteTask(id: string): void {
+    this.tasks = this.tasks.filter(t => t.id !== id);
   }
 }

@@ -1,70 +1,46 @@
 <!-- task-list.component.html -->
-<main class="task-list-page">
-  <header class="task-list-header">
-    <h2>Mes tâches</h2>
+<section class="task-list-section">
 
-    <!-- N'affiche le résumé que s'il y a des tâches -->
-    @if (tasks.length > 0) {
-      <p class="task-summary">
-        {{ pendingCount }} en cours
-        sur {{ tasks.length }} au total
-      </p>
-    }
+  <!-- barre d'outils contenant le titre et le champ de recherche -->
+  <div class="task-list-toolbar">
+    <h1 class="task-list-title">Mes tâches</h1>
 
-    <!-- Statistiques issues du TaskService -->
-    <div class="stats">
-      <span>Total : {{ stats.total }}</span>
-      <span>Complètes : {{ stats.completed }}</span>
-      <span>En attente : {{ stats.pending }}</span>
-    </div>
-  </header>
-
-  <div class="task-list-controls">
-    <!-- Champ de recherche avec two-way binding -->
     <input
-      type="text"
-      [(ngModel)]="searchKeyword"
-      placeholder="Rechercher une tâche..."
+      type="search"
       class="search-input"
-    >
-
-    @if (searchKeyword) {
-      <p class="search-feedback">
-        Recherche active : "{{ searchKeyword }}"
-      </p>
-    }
-
-    <!-- Bouton pour basculer le filtre des tâches terminées -->
-    <button
-      class="btn-filter"
-      (click)="toggleShowCompleted()"
-    >
-      @if (showCompleted) {
-        Masquer les terminées
-      } @else {
-        Afficher tout
-      }
-    </button>
+      placeholder="Rechercher une tâche..."
+      [(ngModel)]="searchTerm"
+    />
   </div>
 
-  <section class="task-list-content">
-    <!-- track task.id identifie chaque tâche par son id unique -->
-    <!-- POURQUOI: Angular ne recrée que les cartes modifiées, pas toute la liste -->
-    @for (task of displayedTasks; track task.id;
-          let i = $index) {
-      <div class="task-item">
-        <span class="task-number">{{ i + 1 }}</span>
-        <!-- [task] passe la tâche courante au composant enfant via @Input() -->
+  <!-- compteur de résultats mis à jour automatiquement grâce au getter filteredTasks -->
+  <p class="task-count">
+    {{ filteredTasks.length }} tâche(s) affichée(s)
+  </p>
+
+  <!-- affichage conditionnel — grille de cartes si des tâches existent, sinon message d'état vide -->
+  @if (filteredTasks.length > 0) {
+    <div class="task-grid">
+      @for (task of filteredTasks; track task.id) {
         <app-task-card
           [task]="task"
-          (toggled)="onTaskToggled($event)"
-          (deleted)="onTaskDeleted($event)"
+          (taskCompleted)="onTaskCompleted($event)"
+          (taskDeleted)="onTaskDeleted($event)"
         />
-      </div>
-    } @empty {
-      <div class="empty-state">
-        <p>Aucune tâche à afficher.</p>
-      </div>
-    }
-  </section>
-</main>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <p class="empty-state__message">
+        Aucune tâche ne correspond à votre recherche.
+      </p>
+      @if (tasks.length === 0) {
+        <p class="empty-state__hint">
+          Vous n'avez aucune tâche pour le moment.
+          Profitez de cette accalmie !
+        </p>
+      }
+    </div>
+  }
+
+</section>

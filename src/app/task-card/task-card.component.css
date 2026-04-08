@@ -1,194 +1,123 @@
+/* task-card.component.css */
+
+/* style de base d'une carte de tâche */
 .task-card {
-  border: 1px solid #e0e0e0;
+  background: white;
   border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  transition: box-shadow 0.2s, opacity 0.3s, background-color 0.3s;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #bdc3c7;
+  transition: box-shadow 0.2s, opacity 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .task-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
-/* Style appliqué dynamiquement via [ngClass] */
+/* tâche terminée visuellement atténuée avec bordure verte */
 .task-card--completed {
   opacity: 0.6;
-  background-color: #f8f9fa;
+  border-left-color: #27ae60;
 }
 
-/* Bordure gauche rouge sur les cartes en retard */
+.task-card--completed .task-card__title {
+  text-decoration: line-through;
+  color: #7f8c8d;
+}
+
+/* tâche en retard signalée par une bordure rouge */
 .task-card--overdue {
-  border-left: 4px solid #dc3545;
+  border-left-color: #e74c3c;
 }
 
-.task-card--urgent {
-  border-left: 4px solid #dc3545;
-}
-
+/* conteneur flex pour les badges de priorité et d'état */
 .task-card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.task-card__title {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-/* Style commun des badges */
-.badge {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-  color: white;
-}
-
-.badge-priority {
-  text-transform: uppercase;
-}
-
-.badge-success {
-  background-color: #198754;
-}
-
-.badge-pending {
-  background-color: #0d6efd;
-}
-
-.badge-neutral {
-  background-color: #6c757d;
-}
-
-.badge-overdue {
-  background-color: #dc3545;
-}
-
-.badge-due {
-  background-color: #0d6efd;
-}
-
-/* Classes de couleur par niveau de priorité (pour [ngClass]) */
-.priority-low {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.priority-medium {
-  background-color: #cce5ff;
-  color: #004085;
-}
-
-.priority-high {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-.priority-urgent {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.priority-hint {
-  font-size: 0.8rem;
-  color: #6c757d;
-  font-style: italic;
-  margin: 0.25rem 0 0.5rem;
-}
-
-.task-description {
-  margin: 0.5rem 0;
-}
-
-.task-description p {
-  margin: 0;
-  color: #333;
-  font-size: 0.9rem;
-}
-
-.text-muted {
-  color: #6c757d;
-  font-style: italic;
-}
-
-.task-card__dates {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.85rem;
-  color: #6c757d;
-  margin: 0.5rem 0;
-}
-
-.task-card__created {
-  color: #6c757d;
-}
-
-.task-card__due {
-  color: #0d6efd;
-}
-
-.task-card__due--overdue {
-  color: #dc3545;
-  font-weight: 600;
-}
-
-.task-card__due--none {
-  color: #6c757d;
-  font-style: italic;
-}
-
-.task-card__tags {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  margin: 0.5rem 0;
+  align-items: center;
 }
 
+/* titre de la tâche */
+.task-card__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* description de la tâche en texte secondaire */
+.task-card__description {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* bloc de métadonnées (dates, tags) en police réduite */
+.task-card__meta {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* liste horizontale de tags avec retour à la ligne automatique */
+.task-card__tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  list-style: none;
+}
+
+/* style de base partagé par tous les badges (priorité, état) */
+.badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* couleurs des badges de priorité */
+.badge--low    { background: #ecf0f1; color: #7f8c8d; }
+.badge--medium { background: #d5e8d4; color: #27ae60; }
+.badge--high   { background: #fde8c8; color: #e67e22; }
+.badge--urgent { background: #fad7d7; color: #e74c3c; }
+
+/* badges d'état (en retard / terminée) */
+.badge--overdue { background: #fad7d7; color: #c0392b; }
+.badge--done    { background: #d5e8d4; color: #27ae60; }
+
+/* tag de catégorie affiché en bleu discret */
 .tag {
-  display: inline-block;
-  padding: 0.15rem 0.5rem;
-  background-color: #e8f0fe;
-  color: #1a73e8;
-  border-radius: 16px;
-  font-size: 0.8rem;
+  background: #eaf0fb;
+  color: #2980b9;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
 }
 
-.no-tag {
-  font-size: 0.8rem;
-  color: #6c757d;
-  font-style: italic;
-}
-
-.task-actions {
+/* conteneur des boutons d'action en bas de carte */
+.task-card__actions {
   display: flex;
   gap: 0.5rem;
-  margin-top: 0.75rem;
+  margin-top: 0.25rem;
 }
 
-.btn-toggle,
-.btn-delete {
-  padding: 0.4rem 0.8rem;
+.btn {
+  padding: 0.4rem 0.9rem;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
   font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.15s;
 }
 
-.btn-toggle {
-  background-color: #e8f0fe;
-  color: #1a73e8;
-}
+.btn:hover { filter: brightness(0.9); }
 
-.btn-delete {
-  background-color: #fce8e6;
-  color: #d93025;
-}
-
-.btn-delete:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.btn--primary { background: #2980b9; color: white; }
+.btn--danger  { background: #e74c3c; color: white; }

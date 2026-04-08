@@ -5,37 +5,46 @@ import {
   Output,
   EventEmitter
 } from '@angular/core';
-import {
-  DatePipe,
-  TitleCasePipe,
-  NgClass,
-  NgStyle,
-} from '@angular/common';
+import { Task } from '../models/task.model';
+import { NgClass } from '@angular/common';
 import { RelativeDatePipe } from
   '../pipes/relative-date.pipe';
-import { Task } from '../models/task.model';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-task-card',
   standalone: true,
-  // Toutes les dépendances du template (pipes, directives) listées explicitement
-  // POURQUOI: En standalone, oublier un import provoque une erreur de compilation
-  imports: [
-    DatePipe, TitleCasePipe, NgClass,
-    NgStyle, RelativeDatePipe,
-  ],
+  imports: [NgClass, RelativeDatePipe, DatePipe],
   templateUrl: './task-card.component.html',
-  styleUrl: './task-card.component.css',
+  styleUrl: './task-card.component.css'
 })
 export class TaskCardComponent {
-  @Input() task!: Task;
 
-  @Output() deleted =
-    new EventEmitter<string>();
-  @Output() toggled =
-    new EventEmitter<string>();
+  // la tâche à afficher, fournie par le composant parent
+  // POURQUOI: required: true génère une erreur à la compilation si le parent oublie de passer [task]
+  @Input({ required: true }) task!: Task;
 
-  // Vérifie si la tâche est dépassée en normalisant les dates à minuit
+  // événement émis vers le parent quand l'utilisateur clique sur "Terminer"
+  // POURQUOI: le composant carte ne modifie pas la donnée lui-même — il délègue au parent
+  @Output() taskCompleted = new EventEmitter<string>();
+
+  // événement émis vers le parent quand l'utilisateur clique sur "Supprimer"
+  @Output() taskDeleted = new EventEmitter<string>();
+
+  // mappe chaque code de priorité vers un libellé en français
+  // POURQUOI: Record<string, string> plutôt qu'un switch — plus concis et facile à enrichir
+  getPriorityLabel(): string {
+    const labels: Record<string, string> = {
+      LOW: 'Basse',
+      MEDIUM: 'Normale',
+      HIGH: 'Haute',
+      URGENT: 'Urgente'
+    };
+    return labels[this.task.priority] ?? this.task.priority;
+  }
+
+  // détermine si la tâche est en retard par rapport à la date du jour
+  // POURQUOI: une tâche complétée n'est jamais "en retard" même si sa date est passée
   isOverdue(): boolean {
     if (!this.task.dueDate || this.task.completed) {
       return false;
@@ -45,39 +54,11 @@ export class TaskCardComponent {
     return new Date(this.task.dueDate) < today;
   }
 
-  // Mappe chaque priorité à une couleur CSS
-  // POURQUOI: Centralisation DRY — un seul endroit à modifier si la palette change
-  getPriorityColor(): string {
-    const colors: Record<string, string> = {
-      LOW: '#6c757d',
-      MEDIUM: '#0d6efd',
-      HIGH: '#fd7e14',
-      URGENT: '#dc3545',
-    };
-    return colors[this.task.priority] ?? '#6c757d';
+  onComplete(): void {
+    this.taskCompleted.emit(this.task.id);
   }
 
-  // Getter retournant un objet de classes CSS dont une seule sera true à la fois
-  // POURQUOI: Un getter est recalculé à chaque cycle de détection
-  get priorityClasses(): Record<string, boolean> {
-    return {
-      'priority-low': this.task.priority === 'LOW',
-      'priority-medium': this.task.priority === 'MEDIUM',
-      'priority-high': this.task.priority === 'HIGH',
-      'priority-urgent': this.task.priority === 'URGENT',
-    };
-  }
-
-  onDelete(event: Event): void {
-    event.stopPropagation();
-    console.log(
-      'Suppression demandée pour :',
-      this.task.title
-    );
-    this.deleted.emit(this.task.id);
-  }
-
-  onToggleComplete(): void {
-    this.toggled.emit(this.task.id);
+  onDelete(): void {
+    this.taskDeleted.emit(this.task.id);
   }
 }

@@ -1,123 +1,88 @@
 <!-- task-card.component.html -->
 <article
+  class="task-card"
   [ngClass]="{
-    'task-card': true,
     'task-card--completed': task.completed,
     'task-card--overdue': isOverdue()
   }"
 >
-  <!-- En-tête contenant le titre et le badge de priorité -->
+  <!-- en-tête de la carte affichant les badges de priorité et d'état -->
   <div class="task-card__header">
-    <h3
-      class="task-card__title"
-      [ngStyle]="{
-        'text-decoration': task.completed
-          ? 'line-through' : 'none',
-        'opacity': task.completed ? '0.6' : '1'
-      }"
-    >
-      <!-- titlecase transforme "rédiger le rapport" en "Rédiger Le Rapport" -->
-      {{ task.title | titlecase }}
-    </h3>
 
     <span
-      class="badge badge-priority"
-      [ngStyle]="{
-        'background-color': getPriorityColor()
-      }"
+      class="badge badge--priority"
+      [ngClass]="'badge--' + task.priority.toLowerCase()"
     >
-      <!-- @switch traduit les codes internes en libellés français -->
       @switch (task.priority) {
         @case ('LOW')    { Basse }
-        @case ('MEDIUM') { Moyenne }
+        @case ('MEDIUM') { Normale }
         @case ('HIGH')   { Haute }
         @case ('URGENT') { Urgente }
       }
     </span>
+
+    @if (isOverdue()) {
+      <span class="badge badge--overdue">En retard</span>
+    }
+
+    @if (task.completed) {
+      <span class="badge badge--done">Terminée</span>
+    }
+
   </div>
 
-  <!-- Indication d'urgence selon la priorité -->
-  <p class="priority-hint">
-    @switch (task.priority) {
-      @case ('LOW') {
-        Aucune urgence
-      }
-      @case ('MEDIUM') {
-        À traiter bientôt
-      }
-      @case ('HIGH') {
-        Important
-      }
-      @case ('URGENT') {
-        À traiter immédiatement
-      }
-    }
-  </p>
+  <!-- corps de la carte avec titre et description optionnelle -->
+  <div class="task-card__body">
+    <h2 class="task-card__title">{{ task.title }}</h2>
 
-  <!-- N'affiche le bloc description que si elle existe -->
-  <div class="task-description">
     @if (task.description) {
-      <p>{{ task.description }}</p>
-    } @else {
-      <p class="text-muted">
-        Aucune description fournie.
+      <p class="task-card__description">
+        {{ task.description }}
       </p>
     }
   </div>
 
-  <!-- Bloc des dates de création et d'échéance -->
-  <div class="task-card__dates">
-    <span class="task-card__created">
-      Créée le
-      {{ task.createdAt | date:'d MMMM yyyy' }}
-    </span>
+  <!-- métadonnées de la tâche : échéance, tags et date de création -->
+  <div class="task-card__meta">
 
     @if (task.dueDate) {
-      <span
-        [ngClass]="{
-          'task-card__due': true,
-          'task-card__due--overdue': isOverdue()
-        }"
+      <p class="task-card__due-date">
+        Échéance :
+        <strong>{{ task.dueDate | relativeDate }}</strong>
+        ({{ task.dueDate | date:'dd/MM/yyyy' }})
+      </p>
+    }
+
+    @if (task.tags.length > 0) {
+      <ul class="task-card__tags">
+        @for (tag of task.tags; track tag) {
+          <li class="tag">{{ tag }}</li>
+        }
+      </ul>
+    }
+
+    <p class="task-card__created">
+      Créée le {{ task.createdAt | date:'dd/MM/yyyy à HH:mm' }}
+    </p>
+
+  </div>
+
+  <!-- boutons d'action de la carte -->
+  <div class="task-card__actions">
+    @if (!task.completed) {
+      <button
+        class="btn btn--primary"
+        (click)="onComplete()"
       >
-        @if (isOverdue()) { En retard — }
-        {{ task.dueDate | relativeDate }}
-      </span>
-    } @else {
-      <span class="task-card__due--none">
-        Sans échéance
-      </span>
+        Terminer
+      </button>
     }
-  </div>
-
-  <!-- Bloc des tags avec titlecase pour uniformiser l'affichage -->
-  <div class="task-card__tags">
-    @for (tag of task.tags; track tag) {
-      <span class="tag">{{ tag | titlecase }}</span>
-    } @empty {
-      <span class="no-tag">Aucun tag</span>
-    }
-  </div>
-
-  <!-- Badge de statut (terminée / en cours) -->
-  @if (task.completed) {
-    <span class="badge badge-success">Terminée</span>
-  } @else {
-    <span class="badge badge-pending">En cours</span>
-  }
-
-  <div class="task-actions">
     <button
-      class="btn-toggle"
-      (click)="onToggleComplete()">
-      {{ task.completed
-        ? 'Réouvrir'
-        : 'Terminer' }}
-    </button>
-    <button
-      class="btn-delete"
-      [disabled]="task.completed"
-      (click)="onDelete($event)">
-      {{ task.completed ? 'Archivée' : 'Supprimer' }}
+      class="btn btn--danger"
+      (click)="onDelete()"
+    >
+      Supprimer
     </button>
   </div>
+
 </article>

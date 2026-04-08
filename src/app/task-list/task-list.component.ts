@@ -1,80 +1,65 @@
 // task-list.component.ts
-import { Component, inject, OnInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TaskCardComponent } from
   '../task-card/task-card.component';
-import { Task, TaskStats } from '../models/task.model';
 import { TaskService } from '../services/task.service';
+import { Task } from '../models/task.model';
 
 @Component({
   selector: 'app-task-list',
   standalone: true,
-  // Déclaration de TaskCardComponent et FormsModule comme dépendances du template
   imports: [TaskCardComponent, FormsModule],
   templateUrl: './task-list.component.html',
-  styleUrl: './task-list.component.css',
+  styleUrl: './task-list.component.css'
 })
 export class TaskListComponent implements OnInit {
+
+  // injection du service via la fonction inject()
+  // POURQUOI: syntaxe recommandée depuis Angular 14 pour les composants standalone
   private taskService = inject(TaskService);
 
+  // tableau local qui contient toutes les tâches récupérées du service
   tasks: Task[] = [];
 
-  // false par défaut — les tâches terminées sont masquées au chargement
-  // POURQUOI: L'utilisateur veut généralement voir ce qui reste à faire
-  showCompleted = false;
-
-  // Propriété liée au champ de recherche via [(ngModel)]
-  searchKeyword: string = '';
-
-  stats: TaskStats = {
-    total: 0,
-    completed: 0,
-    pending: 0
-  };
+  // terme saisi dans le champ de recherche, lié au template via two-way binding [(ngModel)]
+  searchTerm = '';
 
   ngOnInit(): void {
+    // chargement initial des tâches au démarrage du composant
+    // POURQUOI: ngOnInit plutôt que le constructeur — bonnes pratiques Angular
     this.tasks = this.taskService.getTasks();
-    this.updateStats();
   }
 
-  // Getter qui retourne les tâches filtrées selon showCompleted
-  // POURQUOI: Un getter offre une syntaxe plus propre dans le template
-  // et est recalculé à chaque cycle de détection
-  get displayedTasks(): Task[] {
-    if (this.showCompleted) {
+  // getter qui renvoie les tâches filtrées par le terme de recherche
+  // POURQUOI: un getter plutôt qu'une méthode — convention Angular pour les propriétés
+  // calculées sans effets de bord
+  get filteredTasks(): Task[] {
+    if (!this.searchTerm.trim()) {
       return this.tasks;
     }
-    // filter() crée un nouveau tableau sans modifier this.tasks
-    return this.tasks.filter(t => !t.completed);
+    const term = this.searchTerm.toLowerCase();
+    return this.tasks.filter(task =>
+      task.title.toLowerCase().includes(term) ||
+      task.description?.toLowerCase().includes(term)
+    );
   }
 
-  // Getter retournant le nombre de tâches non terminées
-  get pendingCount(): number {
-    return this.tasks.filter(t => !t.completed).length;
-  }
-
-  // Inverse le booléen showCompleted pour basculer le filtre
-  toggleShowCompleted(): void {
-    this.showCompleted = !this.showCompleted;
-  }
-
-  onTaskToggled(taskId: string): void {
+  // gestionnaire déclenché par l'événement @Output taskCompleted du TaskCardComponent
+  onTaskCompleted(taskId: string): void {
     this.taskService.toggleComplete(taskId);
+    // recharge le tableau complet depuis le service
+    // POURQUOI: crée une nouvelle référence de tableau pour qu'Angular détecte le changement
     this.tasks = this.taskService.getTasks();
-    this.updateStats();
   }
 
+  // gestionnaire déclenché par l'événement @Output taskDeleted du TaskCardComponent
   onTaskDeleted(taskId: string): void {
     this.taskService.deleteTask(taskId);
     this.tasks = this.taskService.getTasks();
-    this.updateStats();
-  }
-
-  private updateStats(): void {
-    this.stats = {
-      total: this.tasks.length,
-      completed: this.tasks.filter(t => t.completed).length,
-      pending: this.tasks.filter(t => !t.completed).length
-    };
   }
 }
