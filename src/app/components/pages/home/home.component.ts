@@ -1,9 +1,9 @@
 // home.component.ts
 import {Component, inject, OnInit} from '@angular/core';
 import { TaskListComponent } from
-  '../../task-list/task-list.component';
+        '../../task-list/task-list.component';
 import {HttpClient} from '@angular/common/http';
-import {ExampleService} from '../../services/example.service';
+import {ExampleService} from '../../../services/example.service';
 
 @Component({
   selector: 'app-home',

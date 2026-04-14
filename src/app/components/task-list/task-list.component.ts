@@ -6,10 +6,10 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TaskCardComponent } from
-  '../task-card/task-card.component';
-import { TaskService } from '../services/task.service';
-import { Task } from '../models/task.model';
-import {ExampleService} from '../services/example.service';
+    '../task-card/task-card.component';
+import { TaskService } from '../../services/task.service';
+import { Task } from '../../models/task.model';
+import {ExampleService} from '../../services/example.service';
 
 @Component({
   selector: 'app-task-list',

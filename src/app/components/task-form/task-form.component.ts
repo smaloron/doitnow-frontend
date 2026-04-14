@@ -6,11 +6,11 @@ import {
   Validators
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TaskService } from '../services/task.service';
-import { CreateTaskDTO } from '../models/task.model';
+import { TaskService } from '../../services/task.service';
+import { CreateTaskDTO } from '../../models/task.model';
 import {
   futureDateValidator
-} from '../validators/custom-validators';
+} from '../../validators/custom-validators';
 
 @Component({
   selector: 'app-task-form',

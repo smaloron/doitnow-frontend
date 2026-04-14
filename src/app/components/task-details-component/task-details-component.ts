@@ -1,6 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
-import { Task} from '../models/task.model';
-import {TaskService} from '../services/task.service';
+import { Task} from '../../models/task.model';
+import {TaskService} from '../../services/task.service';
 import {ActivatedRoute} from '@angular/router';
 
 @Component({

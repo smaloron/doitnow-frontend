@@ -5,10 +5,10 @@ import {
   Output,
   EventEmitter
 } from '@angular/core';
-import { Task } from '../models/task.model';
+import { Task } from '../../models/task.model';
 import { NgClass } from '@angular/common';
 import { RelativeDatePipe } from
-  '../pipes/relative-date.pipe';
+        '../../pipes/relative-date.pipe';
 import { DatePipe } from '@angular/common';
 
 @Component({
