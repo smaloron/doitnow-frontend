@@ -1,0 +1,122 @@
+<div class="form-container">
+  <h2>
+    {{ isEditMode ? 'Modifier la tâche' : 'Nouvelle tâche' }}
+  </h2>
+
+  <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+
+    <!-- Titre -->
+    <div class="form-group">
+      <label for="title">Titre *</label>
+      <input id="title"
+             type="text"
+             formControlName="title"
+             [class.is-invalid]="title?.invalid && title?.touched">
+
+      @if (title?.invalid && title?.touched) {
+        <div class="error-message">
+          @if (title?.errors?.['required']) {
+            <span>Le titre est obligatoire.</span>
+          }
+          @if (title?.errors?.['minlength']) {
+            <span>3 caractères minimum.</span>
+          }
+          @if (title?.errors?.['maxlength']) {
+            <span>100 caractères maximum.</span>
+          }
+        </div>
+      }
+
+      <!-- Affiche l'erreur de validation renvoyée par le backend pour ce champ -->
+      @if (apiErrors['title']) {
+        <div class="error-message api-error">
+          {{ apiErrors['title'] }}
+        </div>
+      }
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea id="description"
+                formControlName="description"
+                rows="3"
+                maxlength="500">
+      </textarea>
+    </div>
+
+    <!-- Priorité -->
+    <div class="form-group">
+      <label for="priority">Priorité</label>
+      <select id="priority" formControlName="priority">
+        @for(p of priorities; track p){
+          <option [value]="p">
+            {{ p }}
+          </option>
+        }
+
+      </select>
+    </div>
+
+    <!-- Tags — FormArray dynamique -->
+    <div class="form-group">
+      <label>Tags</label>
+      <div formArrayName="tags">
+        @for(tag of tags.controls; track tag; let i = $index){
+          <div class="tag-row">
+            <input [formControlName]="i"
+                   type="text"
+                   placeholder="Nom du tag">
+            <button type="button" (click)="removeTag(i)">
+              Supprimer
+            </button>
+          </div>
+        }
+
+      </div>
+      <button type="button"
+              class="btn-secondary"
+              (click)="addTag()">
+        Ajouter un tag
+      </button>
+    </div>
+
+    <!-- Date d'échéance -->
+    <div class="form-group">
+      <label for="dueDate">Date d'échéance</label>
+      <input id="dueDate"
+             type="date"
+             formControlName="dueDate"
+             [class.is-invalid]="
+               dueDate?.invalid && dueDate?.touched
+             ">
+      @if(dueDate?.errors?.['pastDate'] && dueDate?.touched){
+        <div class="error-message">
+          La date doit être aujourd'hui ou dans le futur.
+        </div>
+      }
+
+      @if(apiErrors['dueDate']){
+        <div class="error-message api-error">
+          {{ apiErrors['dueDate'] }}
+        </div>
+      }
+
+    </div>
+
+    <div class="form-actions">
+      <button type="button"
+              class="btn-secondary"
+              routerLink="/tasks">
+        Annuler
+      </button>
+      <button type="submit"
+              [disabled]="taskForm.invalid || isLoading">
+        {{ isLoading
+           ? 'Enregistrement...'
+           : (isEditMode ? 'Mettre à jour' : 'Créer') }}
+      </button>
+    </div>
+
+  </form>
+</div>

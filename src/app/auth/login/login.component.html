@@ -1,0 +1,51 @@
+<div>
+  <h2>Connexion</h2>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div>
+      <label for="email">Email</label>
+      <input id="email"
+             type="email"
+             formControlName="email"
+      >
+
+      @if(email?.invalid && email?.touched){
+        <div>
+
+          @if(email?.errors?.['required']){
+            <span>Email requis</span>
+          }
+
+          @if(email?.errors?.['email']){
+            <span>Email mal formé</span>
+          }
+        </div>
+      }
+
+    </div>
+
+    <div>
+      <label for="password">Mot de passe</label>
+      <input id="password"
+             type="password"
+             formControlName="password"
+      >
+
+      @if(password?.invalid && password?.touched){
+        <div>
+
+          @if(password?.errors?.['required']){
+            <span>Mot de passe requis</span>
+          }
+
+          @if(password?.errors?.['minLength']){
+            <span>Mot de passe trop court</span>
+          }
+
+        </div>
+      }
+    </div>
+
+    <button type="submit">Connexion</button>
+  </form>
+</div>

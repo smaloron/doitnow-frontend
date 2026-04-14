@@ -1,6 +1,6 @@
 // src/app/services/task.service.ts
 import { Injectable } from '@angular/core';
-import { Task } from '../models/task.model';
+import {CreateTaskDTO, Task} from '../models/task.model';
 
 @Injectable({
   // enregistre le service comme singleton au niveau racine de l'application
@@ -123,6 +123,27 @@ export class TaskService {
     return [...this.tasks];
   }
 
+  getOneById(id:string | null): Task  {
+    let task = this.tasks.find((task) => task.id === id);
+    if (!task) {
+      return {
+        id: '1',
+        title: 'Pas de tâche',
+        description: 'Consolider les indicateurs financiers'
+          + ' et les présenter à la direction.',
+        completed: false,
+        userId: 'user-1',
+        priority: 'HIGH',
+        tags: ['rapport', 'finance'],
+        dueDate: '2026-04-03',
+        createdAt: '2026-03-20T09:00:00',
+        updatedAt: '2026-03-20T09:00:00'
+      };
+    }
+
+    return task;
+  }
+
   // inverse le booléen completed de la tâche identifiée par son id
   // POURQUOI: la mutation se fait dans le service (source de vérité unique)
   toggleComplete(id: string): void {
@@ -136,5 +157,9 @@ export class TaskService {
   // POURQUOI: filter() produit un nouveau tableau plutôt que muter l'existant avec splice
   deleteTask(id: string): void {
     this.tasks = this.tasks.filter(t => t.id !== id);
+  }
+
+  saveTask(data: CreateTaskDTO): void {
+
   }
 }

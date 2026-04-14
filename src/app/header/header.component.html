@@ -1,9 +1,38 @@
-<!-- header.component.html -->
 <header class="header">
   <div class="header-content">
-    <span class="app-name">{{ appName }}</span>
-    <nav class="nav">
-      <a href="/" class="nav-link">Mes tâches</a>
-    </nav>
+    <a routerLink="/" class="header__logo">DoItNow</a>
+
+    @if (authService.isAuthenticated()) {
+      <nav class="header__nav">
+        <a routerLink="/tasks"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: true }"
+           class="header__link">
+          Mes tâches
+        </a>
+        <a routerLink="/stats"
+           routerLinkActive="active"
+           class="header__link">
+          Statistiques
+        </a>
+      </nav>
+    }
+
+    <div class="header__actions">
+      @if (authService.isAuthenticated()) {
+        <a routerLink="/tasks/new" class="btn btn--primary">
+          Nouvelle tâche
+        </a>
+        <button
+          type="button"
+          class="btn btn--ghost"
+          (click)="authService.logout()">
+          Déconnexion
+        </button>
+      } @else {
+        <a routerLink="/login" class="btn btn--ghost">Connexion</a>
+        <a routerLink="/register" class="btn btn--primary">Inscription</a>
+      }
+    </div>
   </div>
 </header>

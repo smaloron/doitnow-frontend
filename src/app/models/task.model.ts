@@ -40,3 +40,11 @@ export interface TaskStats {
   completed: number;  // Nombre de tâches dont completed === true
   pending: number;    // Nombre de tâches dont completed === false
 }
+
+export interface CreateTaskDTO {
+  title: string;
+  description?: string;
+  priority?: Priority;
+  tags?: string[];
+  dueDate?: string;           // Format YYYY-MM-DD attendu par le backend
+}
