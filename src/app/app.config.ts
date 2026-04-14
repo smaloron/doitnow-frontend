@@ -11,6 +11,10 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 
 import { routes } from './app.routes';
+import {provideHttpClient, withInterceptors} from '@angular/common/http';
+import {API_URL} from './tokens/api.token';
+import {environment} from '../environments/environment';
+import {authInterceptor} from './interceptors/auth.interceptors';
 
 // Enregistre les données de localisation française dans Angular
 // POURQUOI: Sans cela, le pipe date utiliserait en-US et afficherait "March 27, 2026"
@@ -25,5 +29,9 @@ export const appConfig: ApplicationConfig = {
     // sensibles à la locale (date, currency, number...)
     // POURQUOI: Définir 'fr-FR' ici applique le français globalement
     { provide: LOCALE_ID, useValue: 'fr-FR' },
+    provideHttpClient( withInterceptors([
+      authInterceptor
+    ])),
+    {provide: API_URL, useValue: environment.apiUrl},
   ]
 };

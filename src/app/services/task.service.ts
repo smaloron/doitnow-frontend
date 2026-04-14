@@ -1,6 +1,9 @@
 // src/app/services/task.service.ts
-import { Injectable } from '@angular/core';
-import {CreateTaskDTO, Task} from '../models/task.model';
+import {inject, Injectable} from '@angular/core';
+import {CreateTaskDTO, Page, Task} from '../models/task.model';
+import {API_URL} from '../tokens/api.token';
+import {Observable} from 'rxjs';
+import {HttpClient} from '@angular/common/http';
 
 @Injectable({
   // enregistre le service comme singleton au niveau racine de l'application
@@ -8,6 +11,9 @@ import {CreateTaskDTO, Task} from '../models/task.model';
   providedIn: 'root'
 })
 export class TaskService {
+
+  private readonly API_URL = inject(API_URL);
+  private http = inject(HttpClient);
 
   // données de démonstration reproduisant le jeu de données inséré par le backend
   // POURQUOI: permet de développer et tester les composants sans dépendre du backend
@@ -119,8 +125,8 @@ export class TaskService {
 
   // renvoie une copie shallow du tableau de tâches
   // POURQUOI: le spread [...] crée une nouvelle référence — les composants ne peuvent pas muter le tableau interne
-  getTasks(): Task[] {
-    return [...this.tasks];
+  getTasks(): Observable<Page<Task>> {
+    return this.http.get<Page<Task>>(`${this.API_URL}/tasks`);
   }
 
   getOneById(id:string | null): Task  {
@@ -159,7 +165,7 @@ export class TaskService {
     this.tasks = this.tasks.filter(t => t.id !== id);
   }
 
-  saveTask(data: CreateTaskDTO): void {
-
+  saveTask(data: CreateTaskDTO): Observable<Task> {
+    return this.http.post<Task>(`${this.API_URL}/tasks`, data);
   }
 }

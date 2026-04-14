@@ -1,5 +1,8 @@
 import {inject, Injectable} from '@angular/core';
 import {Router} from '@angular/router';
+import { API_URL} from '../../tokens/api.token';
+import {Observable} from 'rxjs';
+import {HttpClient} from '@angular/common/http';
 
 
 export interface AuthResponse {
@@ -16,6 +19,11 @@ export interface AuthCredentials {
   providedIn: 'root'
 })
 export class AuthService{
+
+  private readonly API_URL = inject(API_URL);
+  private htpp = inject(HttpClient);
+
+
   private readonly TOKEN_KEY: string = 'auth-token';
 
   private router = inject(Router);
@@ -28,18 +36,24 @@ export class AuthService{
     return localStorage.getItem(this.TOKEN_KEY)
   }
 
+  setToken(token: string ): void {
+    localStorage.setItem(this.TOKEN_KEY, token);
+  }
+
+  deleteToken(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+  }
+
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     this.router.navigate(['/login']);
   }
 
-  login(credentials: AuthCredentials): AuthResponse {
-    localStorage.setItem(this.TOKEN_KEY, '123456');
-    return {token: '12345'}
+  login(credentials: AuthCredentials): Observable<AuthResponse> {
+    return this.htpp.post<AuthResponse>( `${this.API_URL}/auth/login`, credentials);
   }
 
-  register(credentials: AuthCredentials): any {
-    localStorage.setItem(this.TOKEN_KEY, '123456');
-    return {token: '12345'}
+  register(credentials: AuthCredentials): Observable<AuthResponse>  {
+    return this.htpp.post<AuthResponse>(`${this.API_URL}/auth/register`, credentials);
   }
 }

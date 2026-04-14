@@ -18,23 +18,29 @@ export class LoginComponent {
   private router = inject(Router);
 
   loginForm = this.fb.group({
-    email: ['moi@moi.com', [Validators.required, Validators.email]],
-    password: ['12345678', [Validators.required, Validators.minLength(6)]],
+    email: ['user@example.com', [Validators.required, Validators.email]],
+    password: ['password123', [Validators.required, Validators.minLength(6)]],
   })
 
   get email() { return this.loginForm.controls['email'] }
   get password() { return this.loginForm.controls['password'] }
 
   onSubmit() {
-    if (this.loginForm.invalid) {
-      console.log(this.loginForm);
-    } else {
+    if (this.loginForm.valid) {
       let credentials: AuthCredentials = {
         email : this.loginForm.controls['email'].value,
         password : this.loginForm.controls['password'].value
       }
-      this.authService.login(credentials);
-      this.router.navigate(['/tasks']);
+      this.authService.login(credentials).subscribe({
+        next: res => {
+          this.authService.setToken(res.token);
+          console.log(res);
+          this.router.navigate(['/tasks']);
+        },
+        error: err => {
+          console.log(err);
+        }
+      });
     }
   }
 

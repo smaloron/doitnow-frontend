@@ -9,6 +9,7 @@ import { TaskCardComponent } from
   '../task-card/task-card.component';
 import { TaskService } from '../services/task.service';
 import { Task } from '../models/task.model';
+import {ExampleService} from '../services/example.service';
 
 @Component({
   selector: 'app-task-list',
@@ -23,6 +24,7 @@ export class TaskListComponent implements OnInit {
   // POURQUOI: syntaxe recommandée depuis Angular 14 pour les composants standalone
   private taskService = inject(TaskService);
 
+
   // tableau local qui contient toutes les tâches récupérées du service
   tasks: Task[] = [];
 
@@ -32,7 +34,14 @@ export class TaskListComponent implements OnInit {
   ngOnInit(): void {
     // chargement initial des tâches au démarrage du composant
     // POURQUOI: ngOnInit plutôt que le constructeur — bonnes pratiques Angular
-    this.tasks = this.taskService.getTasks();
+    this.taskService.getTasks().subscribe({
+      next: page => {
+        this.tasks = page.content
+        console.log(page);
+      },
+      error: err => console.log(err)
+    });
+
   }
 
   // getter qui renvoie les tâches filtrées par le terme de recherche
@@ -54,12 +63,12 @@ export class TaskListComponent implements OnInit {
     this.taskService.toggleComplete(taskId);
     // recharge le tableau complet depuis le service
     // POURQUOI: crée une nouvelle référence de tableau pour qu'Angular détecte le changement
-    this.tasks = this.taskService.getTasks();
+    //this.tasks = this.taskService.getTasks();
   }
 
   // gestionnaire déclenché par l'événement @Output taskDeleted du TaskCardComponent
   onTaskDeleted(taskId: string): void {
     this.taskService.deleteTask(taskId);
-    this.tasks = this.taskService.getTasks();
+    //this.tasks = this.taskService.getTasks();
   }
 }

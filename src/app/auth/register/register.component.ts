@@ -57,8 +57,14 @@ export class RegisterComponent {
     this.errorMessage = '';
 
     const { email, password } = this.registerForm.value;
-    this.authService.register({ email: email!, password: password! });
-    this.router.navigate(['/tasks'])
-
+    this.authService.register({ email: email!, password: password! }).subscribe(
+      {
+        next: res => {
+          this.authService.setToken(res.token);
+          this.router.navigate(['/tasks']);
+        },
+        error: err => { console.log(err); }
+      }
+    );
   }
 }

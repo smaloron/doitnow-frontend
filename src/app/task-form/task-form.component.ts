@@ -106,6 +106,13 @@ export class TaskFormComponent implements OnInit {
       dueDate: v.dueDate || undefined
     };
 
-    this.taskService.saveTask(dto);
+    this.taskService.saveTask(dto).subscribe(
+      {
+        next: res => {
+          this.router.navigate(['/tasks']);
+        },
+        error: err => { console.log(err); }
+      }
+    );
   }
 }

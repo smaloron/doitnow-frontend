@@ -48,3 +48,11 @@ export interface CreateTaskDTO {
   tags?: string[];
   dueDate?: string;           // Format YYYY-MM-DD attendu par le backend
 }
+
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
