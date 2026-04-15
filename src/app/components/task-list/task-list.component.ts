@@ -35,9 +35,6 @@ export class TaskListComponent implements OnInit, OnDestroy {
   private taskService = inject(TaskService);
 
 
-  // Observable résolu dans la vue avec async pipe
-  task$!: Observable<Page<Task>>;
-
   // ViewModel pour gérer l'indicateur de chargement et l'affichage des erreurs
   viewModel$!: Observable<ViewModel<Page<Task>>>;
 
