@@ -29,6 +29,7 @@
           (click)="authService.logout()">
           Déconnexion
         </button>
+        <button routerLink="/dashboard">Dashboard</button>
       } @else {
         <a routerLink="/login" class="btn btn--ghost">Connexion</a>
         <a routerLink="/register" class="btn btn--primary">Inscription</a>

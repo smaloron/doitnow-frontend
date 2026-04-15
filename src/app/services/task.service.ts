@@ -1,10 +1,11 @@
 // src/app/services/task.service.ts
 import {inject, Injectable} from '@angular/core';
-import {CreateTaskDTO, Page, Task} from '../models/task.model';
+import {CreateTaskDTO, Page, Task, TaskStats} from '../models/task.model';
 import {API_URL} from '../tokens/api.token';
 import {catchError, Observable, of, OperatorFunction, throwError} from 'rxjs';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {NotificationService} from './notification.service';
+
 
 @Injectable({
   // enregistre le service comme singleton au niveau racine de l'application
@@ -205,6 +206,12 @@ export class TaskService {
   // POURQUOI: filter() produit un nouveau tableau plutôt que muter l'existant avec splice
   deleteTask(id: string): void {
     this.tasks = this.tasks.filter(t => t.id !== id);
+  }
+
+  getStats():Observable<TaskStats> {
+    return this.http.get<TaskStats>(`${this.API_URL}/tasks/stats`).pipe(
+      this.handleError('getStats')
+    );
   }
 
 

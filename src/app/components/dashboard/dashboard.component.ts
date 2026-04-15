@@ -1,10 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, inject} from '@angular/core';
 // Import du composant et de l'interface depuis le même fichier
 // POURQUOI: Regrouper ces deux exports dans un seul fichier permet un import unique
 import {
   TaskSummaryCardComponent,
   TaskSummary
 } from '../task-summary-card/task-symmary-card.component';
+import {TaskService} from '../../services/task.service';
+import {BehaviorSubject, combineLatest, forkJoin, map, Observable, shareReplay} from 'rxjs';
+import {TaskStats, Task, Priority} from '../../models/task.model';
+import {AsyncPipe} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+
+type PriorityFilter = 'ALL' | Priority;
 
 @Component({
   selector: 'app-dashboard',
@@ -12,48 +19,50 @@ import {
   styleUrl: './dashboard.component.css',
   standalone: true,
   // TaskSummaryCardComponent listé pour résoudre <app-task-summary-card> dans le template
-  imports: [TaskSummaryCardComponent]
+  imports: [TaskSummaryCardComponent, AsyncPipe, FormsModule]
 })
 // "implements OnInit" engage la classe à définir ngOnInit()
-export class DashboardComponent
-  implements OnInit {
+export class DashboardComponent {
 
-  // Source de données centrale du dashboard, typée TaskSummary[]
-  // POURQUOI: Le type garantit que chaque élément respecte la structure attendue par l'enfant.
-  // Dans une vraie application, ces données seraient chargées depuis l'API
-  // (GET /api/tasks/stats) dans ngOnInit() via un service HTTP
-  summaries: TaskSummary[] = [
-    {
-      label: 'Total',
-      count: 8,
-      type: 'total'
-    },
-    {
-      label: 'Terminées',
-      count: 2,
-      type: 'completed'
-    },
-    {
-      label: 'En cours',
-      count: 6,
-      type: 'pending'
-    },
-    {
-      label: 'En retard',
-      count: 1,
-      type: 'overdue'
-    }
-  ];
+  private taskService = inject(TaskService);
 
-  ngOnInit(): void {
-    // Initialisation du dashboard
-    // POURQUOI: ngOnInit est préféré au constructeur car les @Input() sont déjà valorisés —
-    // dans une vraie application, on appellerait ici un service HTTP pour les statistiques
-    console.log(
-      'Dashboard initialisé avec',
-      this.summaries.length,
-      'cartes'
+  private data$ = forkJoin({
+    tasks: this.taskService.getTasks(),
+    stats: this.taskService.getStats()
+  }).pipe(
+    map(({tasks, stats}) => ({stats, tasks: tasks.content})),
+    shareReplay(1)
+  );
+
+  stats$: Observable<TaskStats> = this.data$.pipe(map(data=> data.stats));
+  tasks$: Observable<Task[]> = this.data$.pipe(map(data=> data.tasks));
+
+  private priorityFilter$: BehaviorSubject<PriorityFilter> = new BehaviorSubject<PriorityFilter>('ALL');
+
+  filteredTasks$: Observable<Task[]> = combineLatest([
+    this.priorityFilter$,
+    this.tasks$])
+    .pipe(
+      map(([priority, tasks ]) => {
+        return priority === 'ALL' ? tasks : tasks.filter(task => task.priority === priority);
+      }),
     );
+
+  convertToSummary(stats: TaskStats): TaskSummary[] {
+    return [
+      { label: 'Total', count: stats.total, type: 'total' },
+      { label: 'Terminées', count: stats.completed, type: 'completed' },
+      { label: 'En cours', count: stats.pending, type: 'pending' },
+      { label: 'En retard', count: stats.overdue, type: 'overdue' },
+    ]
+  }
+
+  priorities: PriorityFilter[] = ['ALL', 'LOW', 'MEDIUM', 'HIGH', 'URGENT'];
+  currentPriority = 'ALL';
+
+
+  onPriorityChange(priority: PriorityFilter) {
+    this.priorityFilter$.next(priority);
   }
 
   // Reçoit le "type" émis par TaskSummaryCardComponent via @Output "selected"

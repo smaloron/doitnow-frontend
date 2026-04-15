@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {Router} from '@angular/router';
-import { API_URL} from '../../tokens/api.token';
-import {Observable} from 'rxjs';
+import {API_URL} from '../../tokens/api.token';
+import {Observable, tap} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 
 
@@ -18,7 +18,7 @@ export interface AuthCredentials {
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService{
+export class AuthService {
 
   private readonly API_URL = inject(API_URL);
   private htpp = inject(HttpClient);
@@ -36,7 +36,7 @@ export class AuthService{
     return localStorage.getItem(this.TOKEN_KEY)
   }
 
-  setToken(token: string ): void {
+  setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
   }
 
@@ -50,10 +50,20 @@ export class AuthService{
   }
 
   login(credentials: AuthCredentials): Observable<AuthResponse> {
-    return this.htpp.post<AuthResponse>( `${this.API_URL}/auth/login`, credentials);
+    return this.htpp.post<AuthResponse>(`${this.API_URL}/auth/login`, credentials)
+      .pipe(
+        tap(res => {
+          this.setToken(res.token);
+        })
+      );
   }
 
-  register(credentials: AuthCredentials): Observable<AuthResponse>  {
-    return this.htpp.post<AuthResponse>(`${this.API_URL}/auth/register`, credentials);
+  register(credentials: AuthCredentials): Observable<AuthResponse> {
+    return this.htpp.post<AuthResponse>(`${this.API_URL}/auth/register`, credentials)
+      .pipe(
+        tap(res => {
+          this.setToken(res.token);
+        })
+      );
   }
 }
