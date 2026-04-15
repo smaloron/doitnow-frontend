@@ -1,0 +1,8 @@
+<div class="notification-container">
+  @for(n of notificationList(); track n.id){
+    <div class="notification">
+      <span class="notification-message">{{ n.message }}</span>
+      <button type="button" (click)="dismiss(n.id)" class="notification-button">x</button>
+    </div>
+  }
+</div>

@@ -4,6 +4,7 @@ import {CreateTaskDTO, Page, Task} from '../models/task.model';
 import {API_URL} from '../tokens/api.token';
 import {catchError, Observable, of, OperatorFunction, throwError} from 'rxjs';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {NotificationService} from './notification.service';
 
 @Injectable({
   // enregistre le service comme singleton au niveau racine de l'application
@@ -14,6 +15,7 @@ export class TaskService {
 
   private readonly API_URL = inject(API_URL);
   private http = inject(HttpClient);
+  private notificationService = inject(NotificationService);
 
   // données de démonstration reproduisant le jeu de données inséré par le backend
   // POURQUOI: permet de développer et tester les composants sans dépendre du backend
@@ -139,7 +141,9 @@ export class TaskService {
 
   private handleError<T>(operation: string): OperatorFunction<T, T> {
     return catchError((err) => {
-      return throwError(()=> new Error(this.formatError(operation, err)));
+      const message = this.formatError(operation, err);
+      this.notificationService.error(message);
+      return throwError(()=> new Error(message));
     })
   }
 
