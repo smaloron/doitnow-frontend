@@ -36,6 +36,7 @@ export interface CreateTaskDTO {
 // POURQUOI: séparée de Task pour ne pas mélanger les données brutes (issues
 // de l'API) avec des valeurs calculées localement — responsabilités distinctes
 export interface TaskStats {
+  overdue: number;
   total: number;      // Nombre total de tâches dans la liste
   completed: number;  // Nombre de tâches dont completed === true
   pending: number;    // Nombre de tâches dont completed === false

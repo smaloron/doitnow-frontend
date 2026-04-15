@@ -33,8 +33,6 @@ export class LoginComponent {
       }
       this.authService.login(credentials).subscribe({
         next: res => {
-          this.authService.setToken(res.token);
-          console.log(res);
           this.router.navigate(['/tasks']);
         },
         error: err => {

@@ -1,23 +1,40 @@
 <div class="dashboard">
   <h2>Tableau de bord</h2>
-  <div class="summary-grid">
-    <!-- [summary] passe l'objet via @Input, (selected) écoute l'événement @Output -->
-    <!-- POURQUOI: $event contiendra le "type" émis par TaskSummaryCardComponent.onClick() -->
-    <app-task-summary-card
-      [summary]="summaries[0]"
-      (selected)="onSummarySelected($event)">
-    </app-task-summary-card>
-    <app-task-summary-card
-      [summary]="summaries[1]"
-      (selected)="onSummarySelected($event)">
-    </app-task-summary-card>
-    <app-task-summary-card
-      [summary]="summaries[2]"
-      (selected)="onSummarySelected($event)">
-    </app-task-summary-card>
-    <app-task-summary-card
-      [summary]="summaries[3]"
-      (selected)="onSummarySelected($event)">
-    </app-task-summary-card>
-  </div>
+
+
+    @if(stats$ | async; as stats){
+      <div class="summary-grid">
+
+        @for(s of convertToSummary(stats); track s.type){
+          <app-task-summary-card
+            [summary]="s"
+            (selected)="onSummarySelected($event)">
+          </app-task-summary-card>
+        }
+
+      </div>
+
+      <div>
+        <label>Filtre par priorité</label>
+        <select [(ngModel)]="currentPriority" (ngModelChange)="onPriorityChange($event)">
+          @for(p of priorities; track p){
+            <option [value]="p">{{ p }}</option>
+          }
+        </select>
+      </div>
+
+      @if (filteredTasks$ | async; as tasks){
+        <p>{{ tasks.length}} tâche(s)</p>
+
+        @if(tasks.length > 0){
+          <ul>
+            @for(t of tasks; track t.id){
+              <li>{{ t.title }}</li>
+            }
+          </ul>
+        } @else {
+          <p>Aucune tâche ne correspond à ce filtre</p>
+        }
+      }
+    }
 </div>
