@@ -13,34 +13,51 @@
     />
   </div>
 
-  <!-- compteur de résultats mis à jour automatiquement grâce au getter filteredTasks -->
-  <p class="task-count">
-    {{ filteredTasks.length }} tâche(s) affichée(s)
-  </p>
+  @if (viewModel$ | async; as vm){
 
-  <!-- affichage conditionnel — grille de cartes si des tâches existent, sinon message d'état vide -->
-  @if (filteredTasks.length > 0) {
-    <div class="task-grid">
-      @for (task of filteredTasks; track task.id) {
-        <app-task-card
-          [task]="task"
-          (taskCompleted)="onTaskCompleted($event)"
-          (taskDeleted)="onTaskDeleted($event)"
-        />
-      }
-    </div>
-  } @else {
-    <div class="empty-state">
-      <p class="empty-state__message">
-        Aucune tâche ne correspond à votre recherche.
+    @if(vm.loading){
+      <p>Chargement en cours</p>
+    } @else if (vm.error){
+      <p>{{ vm.error}}p></p>
+    } @else if (vm.data){
+      @let filtered = filterTasks(vm.data.content);
+
+      <!-- compteur de résultats mis à jour automatiquement grâce au getter filteredTasks -->
+      <p class="task-count">
+        {{ filtered.length }} tâche(s) affichée(s)
       </p>
-      @if (tasks.length === 0) {
-        <p class="empty-state__hint">
-          Vous n'avez aucune tâche pour le moment.
-          Profitez de cette accalmie !
-        </p>
+
+      <!-- affichage conditionnel — grille de cartes si des tâches existent, sinon message d'état vide -->
+      @if (filtered.length > 0) {
+        <div class="task-grid">
+          @for (task of filtered; track task.id) {
+            <app-task-card
+              [task]="task"
+              (taskCompleted)="onTaskCompleted($event)"
+              (taskDeleted)="onTaskDeleted($event)"
+            />
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <p class="empty-state__message">
+            Aucune tâche ne correspond à votre recherche.
+          </p>
+          @if (vm.data.content.length === 0) {
+            <p class="empty-state__hint">
+              Vous n'avez aucune tâche pour le moment.
+              Profitez de cette accalmie !
+            </p>
+          }
+        </div>
       }
-    </div>
+    }
   }
+
+
+
+
+
+
 
 </section>

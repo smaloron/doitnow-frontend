@@ -2,61 +2,73 @@
 import {
   Component,
   OnInit,
-  inject
+  inject, OnDestroy
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TaskCardComponent } from
     '../task-card/task-card.component';
 import { TaskService } from '../../services/task.service';
-import { Task } from '../../models/task.model';
+import {Page, Task} from '../../models/task.model';
 import {ExampleService} from '../../services/example.service';
+import {Observable, map, catchError, startWith, of} from 'rxjs';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {AsyncPipe} from '@angular/common';
+
+type ViewModel<T> = {
+  data?: T;
+  error?: string;
+  loading: boolean;
+}
 
 @Component({
   selector: 'app-task-list',
   standalone: true,
-  imports: [TaskCardComponent, FormsModule],
+  imports: [TaskCardComponent, FormsModule, AsyncPipe],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css'
 })
-export class TaskListComponent implements OnInit {
+export class TaskListComponent implements OnInit, OnDestroy {
+
 
   // injection du service via la fonction inject()
   // POURQUOI: syntaxe recommandée depuis Angular 14 pour les composants standalone
   private taskService = inject(TaskService);
 
 
-  // tableau local qui contient toutes les tâches récupérées du service
-  tasks: Task[] = [];
+  // Observable résolu dans la vue avec async pipe
+  task$!: Observable<Page<Task>>;
+
+  // ViewModel pour gérer l'indicateur de chargement et l'affichage des erreurs
+  viewModel$!: Observable<ViewModel<Page<Task>>>;
 
   // terme saisi dans le champ de recherche, lié au template via two-way binding [(ngModel)]
   searchTerm = '';
 
   ngOnInit(): void {
-    // chargement initial des tâches au démarrage du composant
-    // POURQUOI: ngOnInit plutôt que le constructeur — bonnes pratiques Angular
-    this.taskService.getTasks().subscribe({
-      next: page => {
-        this.tasks = page.content
-        console.log(page);
-      },
-      error: err => console.log(err)
-    });
-
-  }
-
-  // getter qui renvoie les tâches filtrées par le terme de recherche
-  // POURQUOI: un getter plutôt qu'une méthode — convention Angular pour les propriétés
-  // calculées sans effets de bord
-  get filteredTasks(): Task[] {
-    if (!this.searchTerm.trim()) {
-      return this.tasks;
-    }
-    const term = this.searchTerm.toLowerCase();
-    return this.tasks.filter(task =>
-      task.title.toLowerCase().includes(term) ||
-      task.description?.toLowerCase().includes(term)
+    this.viewModel$ = this.taskService.getTasks().pipe(
+      map(data =>{
+        return {data, loading: false} as ViewModel<Page<Task>>;
+      }),
+      catchError(err => of({error: err.message, loading: false} as ViewModel<Page<Task>>)),
+      startWith({loading: true} as ViewModel<Page<Task>>)
     );
   }
+
+  ngOnDestroy(): void {
+
+  }
+
+  filterTasks(tasks: Task[]):Task[]{
+    if(!this.searchTerm.trim()){
+      return tasks;
+    }
+    const term = this.searchTerm.trim().toLowerCase();
+    return tasks.filter((task: Task) => {
+      return task.title.toLowerCase().includes(term);
+    });
+  }
+
+
 
   // gestionnaire déclenché par l'événement @Output taskCompleted du TaskCardComponent
   onTaskCompleted(taskId: string): void {
