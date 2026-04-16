@@ -1,4 +1,13 @@
 <!-- task-list.component.html -->
+
+@if(storeTasks | async; as taskList){
+  <ul>
+    @for(task of taskList; track task.id){
+      <li>{{ task.title }}</li>
+    }
+  </ul>
+}
+
 <section class="task-list-section">
 
   <!-- barre d'outils contenant le titre et le champ de recherche -->

@@ -13,6 +13,9 @@ import {ExampleService} from '../../services/example.service';
 import {Observable, map, catchError, startWith, of} from 'rxjs';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {AsyncPipe} from '@angular/common';
+import {Store} from '@ngrx/store';
+import {taskFeature} from '../../store/tasks/tasks.reducer';
+import {TasksActions} from '../../store/tasks/tasks.action';
 
 type ViewModel<T> = {
   data?: T;
@@ -34,6 +37,11 @@ export class TaskListComponent implements OnInit, OnDestroy {
   // POURQUOI: syntaxe recommandée depuis Angular 14 pour les composants standalone
   private taskService = inject(TaskService);
 
+  private store = inject(Store);
+
+  storeTasks = this.store.select(taskFeature.selectTasks);
+  storeLoading = this.store.select(taskFeature.selectLoading);
+  storeError = this.store.select(taskFeature.selectError);
 
   // ViewModel pour gérer l'indicateur de chargement et l'affichage des erreurs
   viewModel$!: Observable<ViewModel<Page<Task>>>;
@@ -49,6 +57,8 @@ export class TaskListComponent implements OnInit, OnDestroy {
       catchError(err => of({error: err.message, loading: false} as ViewModel<Page<Task>>)),
       startWith({loading: true} as ViewModel<Page<Task>>)
     );
+
+    this.store.dispatch(TasksActions.load());
   }
 
   ngOnDestroy(): void {

@@ -15,6 +15,10 @@ import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {API_URL} from './tokens/api.token';
 import {environment} from '../environments/environment';
 import {authInterceptor} from './interceptors/auth.interceptors';
+import {taskFeature} from './store/tasks/tasks.reducer';
+import {provideStore} from '@ngrx/store';
+import {provideEffects} from '@ngrx/effects';
+import {TasksEffects} from './store/tasks/task.effects';
 
 // Enregistre les données de localisation française dans Angular
 // POURQUOI: Sans cela, le pipe date utiliserait en-US et afficherait "March 27, 2026"
@@ -33,5 +37,9 @@ export const appConfig: ApplicationConfig = {
       authInterceptor
     ])),
     {provide: API_URL, useValue: environment.apiUrl},
+    provideStore(
+      { [taskFeature.name] : taskFeature.reducer }
+    ),
+    provideEffects(TasksEffects)
   ]
 };
