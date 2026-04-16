@@ -59,6 +59,8 @@ export class TaskListComponent implements OnInit, OnDestroy {
     );
 
     this.store.dispatch(TasksActions.load());
+
+    this.store.dispatch(TasksActions.subscribeRealtime());
   }
 
   ngOnDestroy(): void {

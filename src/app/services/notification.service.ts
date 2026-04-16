@@ -29,6 +29,7 @@ export class NotificationService {
   }
 
   success(message: string): void {
+    console.log(message);
     this.push('success', message);
   }
 

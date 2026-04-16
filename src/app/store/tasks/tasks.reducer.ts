@@ -22,6 +22,17 @@ export const taskFeature = createFeature({
       ({...state, tasks, loading: false} )),
     on(TasksActions.loadFailure, (state, {error}) =>
       ({...state, error, loading: false})),
+    on(TasksActions.taskCreated,
+      (state, {task}) =>{
+        const found = state.tasks.some(t => t.id === task.id);
+        return found ? state : {...state, tasks:[task, ...state.tasks ]};
+    }),
+    on(TasksActions.taskUpdated, (state, {task}) =>{
+      return ({...state, tasks: state.tasks.map(t => t.id === task.id ? task : t) });
+    }),
+    on(TasksActions.taskDeleted, (state, {taskId}) => {
+      return ({...state, tasks: state.tasks.filter(t => t.id !== taskId) });
+    })
   )
 });
 

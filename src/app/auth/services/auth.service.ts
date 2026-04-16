@@ -66,4 +66,20 @@ export class AuthService {
         })
       );
   }
+
+  getUserId(): string| null {
+    try {
+      const token = this.getToken();
+      const payload = token?.split('.')[1] || '';
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+      const jsonString = new TextDecoder().decode(bytes);
+      const claims = JSON.parse(jsonString);
+
+      return claims.userId;
+
+    } catch {
+      return null;
+    }
+  }
 }

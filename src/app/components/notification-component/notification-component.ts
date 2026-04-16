@@ -1,4 +1,4 @@
-import {Component, inject, OnInit, signal} from '@angular/core';
+import {Component, inject, OnInit, signal, DestroyRef} from '@angular/core';
 import {NotificationService, Notification} from '../../services/notification.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
@@ -16,10 +16,19 @@ export class NotificationComponent implements OnInit {
 
   readonly notificationList = signal<Notification[]>([]);
 
+  private destroyRef = inject(DestroyRef);
+
+  constructor() {
+    console.log('NotificationComponent constructor');
+  }
+
   ngOnInit(): void {
+
+
     this.notificationService.notifications$
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(n => {
+        console.log('notification');
         this.notificationList.update(list => [...list, n]);
         setTimeout(()=> {
           this.dismiss(n.id)
